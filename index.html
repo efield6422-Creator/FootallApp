@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+< lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football App</title>
+</head>
+<>
+    <h1> Football App</h1>
+    <div class="dashboard">
+        <div class="stat-box">
+            <h3>Total Plays</h3>
+            <p id="totalPlays">0</p>
+        </div>
+        <div class="stat-box">
+            <h3>Total Yards</h3>
+            <p id="totalYards">0</p>
+        </div>
+        <div class="stat-box">
+            <h3>Avg Yards</h3>
+            <p id="avgYards">0</p>
+        </div>
+    </div>
+    <form id="playForm"></form>
+        <!--Dropdown for Down Selection-->
+        <label for="down">Down:</label>
+        <select id="down">
+            <option value="1">1st</option>
+            <option value="2">2nd</option>
+            <option value="3">3rd</option>
+            <option value="4">4th</option>
+        </select>
+        <!--<br> is a line break-->
+        <br><br>
+        <!--Input for Distance-->
+        <label for="distance">Distance to Go:</label>
+        <input type="number" id="distance" value="10">
+        <br><br>
+        <!--Playcall Button-->
+            <!--Populated by Playbook-->
+                <!--label for="playCall">Play Call:</label>-->
+                <!--Do not need for because it is not a single thing, it is multiple buttons-->
+        <label for="selectedPlay">Play Call:</label><br>
+        <div id="playbookContainer"></div>
+        <input type="hidden" id="selectedPlay" value="">
+        <br><br>
+        <!--Yards Gained/Loss Input-->
+        <label for="yardsGained">Yards Gained:</label>
+        <input type="number" id="yardsGained" value="0">
+        <br><br>
+        <!--Submit Button-->
+        <button type="button" onclick="logPlay()">Log Play</button>
+    </form>
+    <script>
+        console.log("loaded property")
+        //Custom Playbook list
+        let playbook=["Inside Zone","Counter","Power","Pin & Pull","Outside Zone"];
+        console.log(playbook);
+        let selectedHash = "";
+        let selectedFront = "";
+        let basePlayInput = "";
+        let tagsArray = [];
+        //Convert Each Play Into a Button
+        function loadPlaybook(){
+            let container = document.getElementById("playbookContainer");
+            container.innerHTML = ""; //clear old buttons
+            //loop through each play in our array
+            playbook.forEach(function(play) {
+                //New Element Button
+                let button = document.createElement("button");
+                button.type = "button";
+                button.innerText = play;
+                //Set What Happens when You Click Play
+                button.onclick = function(){
+                    console.log(play);
+                    //clear Highlight
+                    let allButtons = container.querySelectorAll("button");
+                    allButtons.forEach(btn=>btn.style.backgroundgColor = "");
+                    //highlight button clicked
+                    button.style.background = "yellow";
+                    //Save Selected PLay into Hidden Input
+                    document.getElementById("selectedPlay").value = play;
+                    console.log("Selected Play Updated To:",play);
+                };
+                //add the new button to conatiner
+                container.appendChild(button);
+            });
+        }
+        //run function on open of the program
+        loadPlaybook();
+        //Store logged in-game plays
+        let gameLog = [];
+        function logPlay(){
+            //get values from inputs
+            let currentDown=+document.getElementById("down").value;
+            console.log("Current Down:", currentDown);
+            let currentDistance=+document.getElementById("distance").value;
+            console.log("Current Distance:", currentDistance);
+            let currentPlay=+document.getElementById("selectedPlay").value;
+            console.log("Current Play:", currentPlay);
+            let currentYards=+document.getElementById("yardsGained").value;
+            console.log("Current Yards:", currentYards);
+            //check if play is selected
+            if (currentPlay===""){
+                alert("Please Select a Play Call First");
+                return;
+            }
+            //combine data into a single play object
+            let playData={
+                down: +currentDown,
+                distance: +currentDistance,
+                basePlay: basePlayInput, //OL call/Skill call
+                tags: tagsArray, //tags
+                front: selectedFront, //vs front
+                hash: selectedHash, //left or right
+                yardsGained: +currentYards
+            };
+            console.log(playData);
+            //add play obhect to game log array
+            gameLog.push(playData);
+            //print entire game log to browser console to verify
+            console.log("Play Logged", playData);
+            console.log("All Game Data:",gameLog);
+            //Variable for next play
+            let nextDown;
+            let nextDistance;
+            //calculate next down based off yards gained
+            if (currentYards>=currentDistance){
+                nextDown= 1;
+                nextDistance= 10;
+            } else{
+                nextDown=+currentDown+1;
+                nextDistance=+currentDistance- +currentYards;
+            }
+            gameLog.push(playData);
+            document.getElementById("down").value=nextDown;
+            document.getElementById("distance").value=nextDistance;
+            console.log(nextDown);
+            console.log(nextDistance);
+            function updateDashboard(){
+                let totalYards=0;
+                //Calculate total yards
+                gameLog.forEach(play=>{
+                    totalYards+= +play.yardsGained;
+                });
+                //Calulate AVG yards
+                let totalPlays=gameLog.length;
+                //Avoid dividing by zero
+                let avgYards=totalPlays>0?(totalYards/totalPlays).toFixed(1):0;
+                //Update HTML Displays
+                document.getElementById("totalPlays").innerText=totalPlays;
+                document.getElementById("totalYards").innerText=totalYards;
+                document.getElementById("avgYards").innerText=avgYards;
+            }
+            updateDashboard();
+        }
+        
+        
+    </script>
+</body>
+</html>
