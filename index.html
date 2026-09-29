@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-< lang="en">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Football App</title>
 </head>
-<>
+<body>
     <h1> Football App</h1>
     <div class="dashboard">
         <div class="stat-box">
@@ -21,7 +21,7 @@
             <p id="avgYards">0</p>
         </div>
     </div>
-    <form id="playForm"></form>
+    <form id="playForm">
         <!--Dropdown for Down Selection-->
         <label for="down">Down:</label>
         <select id="down">
@@ -36,6 +36,15 @@
         <label for="distance">Distance to Go:</label>
         <input type="number" id="distance" value="10">
         <br><br>
+        <!--Field Position Selector-->
+        <label>Hash:</label><br>
+        <div id="hashContainer">
+            <button type="button" onclick="selectHash('Left')">Left</button>
+            <button type="button" onclick="selectHash('Middle')">Middle</button>
+            <button type="button" onclick="selectHash('RIght')">Right</button>
+        </div>
+        <br>
+
         <!--Playcall Button-->
             <!--Populated by Playbook-->
                 <!--label for="playCall">Play Call:</label>-->
@@ -43,7 +52,21 @@
         <label for="selectedPlay">Play Call:</label><br>
         <div id="playbookContainer"></div>
         <input type="hidden" id="selectedPlay" value="">
-        <br><br>
+        <br>
+        <!--Tag Selection-->
+        <label>Tags:</label>
+        <div id="tagsContainer"></div>
+        <br>
+        <!--Front Selection-->
+        <label>Front:</label>
+        <div id="frontContainer">
+            <button type="button" onclick="selectFront('Over')">Over</button>
+            <button type="button" onclick="selectFront('Under')">Under</button>
+            <button type="button" onclick="selectFront('Okie')">Okie</button>
+            <button type="button" onclick="selectFront('Mint')">Mint</button>
+            <button type="button" onclick="selectFront('Bear')">Bear</button>
+        </div>
+        <br>
         <!--Yards Gained/Loss Input-->
         <label for="yardsGained">Yards Gained:</label>
         <input type="number" id="yardsGained" value="0">
@@ -55,10 +78,10 @@
         console.log("loaded property")
         //Custom Playbook list
         let playbook=["Inside Zone","Counter","Power","Pin & Pull","Outside Zone"];
+        let availableTags=["speed","hop","zip"]
         console.log(playbook);
         let selectedHash = "";
         let selectedFront = "";
-        let basePlayInput = "";
         let tagsArray = [];
         //Convert Each Play Into a Button
         function loadPlaybook(){
@@ -74,8 +97,7 @@
                 button.onclick = function(){
                     console.log(play);
                     //clear Highlight
-                    let allButtons = container.querySelectorAll("button");
-                    allButtons.forEach(btn=>btn.style.backgroundgColor = "");
+                    resetPlaySelection();
                     //highlight button clicked
                     button.style.background = "yellow";
                     //Save Selected PLay into Hidden Input
@@ -86,8 +108,37 @@
                 container.appendChild(button);
             });
         }
-        //run function on open of the program
+        //load avaible Plays
         loadPlaybook();
+
+        function loadTags(){
+            let container = document.getElementById("tagsContainer");
+            container.innerHTML = ""; //clear old buttons
+            //loop through each play in our array
+            availableTags.forEach(tag=> {
+                //New Element Button
+                let button = document.createElement("button");
+                button.type = "button";
+                button.innerText = tag;
+                //Set What Happens when You Click Play
+                button.onclick = function(){
+                    console.log(tag);
+                    let index=tagsArray.indexOf(tag);
+                    if(index===-1){
+                        tagsArray.push(tag);
+                        //highlight button clicked
+                        button.style.backgroundColor = "yellow";
+                    } else {
+                        tagsArray.splice(index,1);
+                        button.style.background="";
+                    };
+                };
+                //add the new button to conatiner
+                container.appendChild(button);
+            });
+        }
+        //load avaiable tags
+        loadTags();
         //Store logged in-game plays
         let gameLog = [];
         function logPlay(){
@@ -96,7 +147,7 @@
             console.log("Current Down:", currentDown);
             let currentDistance=+document.getElementById("distance").value;
             console.log("Current Distance:", currentDistance);
-            let currentPlay=+document.getElementById("selectedPlay").value;
+            let currentPlay=document.getElementById("selectedPlay").value;
             console.log("Current Play:", currentPlay);
             let currentYards=+document.getElementById("yardsGained").value;
             console.log("Current Yards:", currentYards);
@@ -105,19 +156,22 @@
                 alert("Please Select a Play Call First");
                 return;
             }
+            //tags for play
+            let tagsInput=document.getElementById("skillTags");
+            let rawTags=tagsInput?tagsInput.value:"";
+            let tagsArray=rawTags?rawTags.split(",").map(t=>t.trim()):["None"];
             //combine data into a single play object
             let playData={
                 down: +currentDown,
                 distance: +currentDistance,
-                basePlay: basePlayInput, //OL call/Skill call
-                tags: tagsArray, //tags
+                basePlay: currentPlay, //OL call/Skill call
+                tags: tagsArray.length>0?[...tagsArray]:["None"], //uses active tags
                 front: selectedFront, //vs front
                 hash: selectedHash, //left or right
                 yardsGained: +currentYards
             };
             console.log(playData);
-            //add play obhect to game log array
-            gameLog.push(playData);
+
             //print entire game log to browser console to verify
             console.log("Play Logged", playData);
             console.log("All Game Data:",gameLog);
@@ -137,7 +191,10 @@
             document.getElementById("distance").value=nextDistance;
             console.log(nextDown);
             console.log(nextDistance);
-            function updateDashboard(){
+            updateDashboard();
+            resetPlaySelection();
+        }
+        function updateDashboard(){
                 let totalYards=0;
                 //Calculate total yards
                 gameLog.forEach(play=>{
@@ -153,6 +210,45 @@
                 document.getElementById("avgYards").innerText=avgYards;
             }
             updateDashboard();
+        function resetPlaySelection(){
+            //clear playcall selection
+            let playButtons=document.querySelectorAll("#playbookContainer button");
+            playButtons.forEach(btn=>btn.style.backgroundColor="");
+            document.getElementById("selectedPlay").value="";
+            //clear hash selection
+            let hashButtons=document.querySelectorAll("#hashContainer button");
+            hashButtons.forEach(btn=>btn.style.backgroundColor="");
+            selectedHash="";
+            //clear front selection
+            let frontButtons=document.querySelectorAll("#frontContainer button");
+            frontButtons.forEach(btn=>btn.style.backgroundColor="");
+            selectedFront="";    
+            //clear tag selection
+            tagsArray=[];
+            loadTags();                    
+        }
+        function selectHash(hashValue){
+            console.log("hash Clicked", hashValue);
+            selectedHash=hashValue;
+            let buttons=document.querySelectorAll("#hashContainer button");
+            buttons.forEach(btn=>{
+                if (btn.innerText === hashValue){
+                    btn.style.backgroundColor="yellow";
+                } else {
+                    btn.style.background = "";
+                }
+            });
+        }
+        function selectFront(frontValue){
+            selectedFront=frontValue;
+            let buttons=document.querySelectorAll("#frontContainer button");
+            buttons.forEach(btn=>{
+                if (btn.innerText === frontValue){
+                    btn.style.background="yellow";
+                } else {
+                    btn.style.background = "";
+                }
+            });
         }
         
         
