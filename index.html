@@ -41,7 +41,7 @@
         <div id="hashContainer">
             <button type="button" onclick="selectHash('Left')">Left</button>
             <button type="button" onclick="selectHash('Middle')">Middle</button>
-            <button type="button" onclick="selectHash('RIght')">Right</button>
+            <button type="button" onclick="selectHash('Right')">Right</button>
         </div>
         <br>
 
@@ -96,8 +96,7 @@
                 //Set What Happens when You Click Play
                 button.onclick = function(){
                     console.log(play);
-                    //clear Highlight
-                    resetPlaySelection();
+
                     //highlight button clicked
                     button.style.background = "yellow";
                     //Save Selected PLay into Hidden Input
@@ -224,7 +223,9 @@
             frontButtons.forEach(btn=>btn.style.backgroundColor="");
             selectedFront="";    
             //clear tag selection
-            tagsArray=[];
+            let tagButtons=document.querySelectorAll("#tagContainer button");
+            tagButtons.forEach(btn=>btn.style.backgroundColor="");
+            selectedTag="";
             loadTags();                    
         }
         function selectHash(hashValue){
