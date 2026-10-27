@@ -20,6 +20,10 @@
             <h3>Avg Yards</h3>
             <p id="avgYards">0</p>
         </div>
+        <div class="stat-box">
+            <h3>Play Breakdwon</h3>
+            <div id="playBreakdownContainer"></div>
+        </div>
     </div>
     <form id="playForm">
         <!--Dropdown for Down Selection-->
@@ -44,7 +48,15 @@
             <button type="button" onclick="selectHash('Right')">Right</button>
         </div>
         <br>
-
+        <!-- Scheme Selection-->
+        <label for="schemesContainer">Scheme:</label><br>
+        <div id="schemesContainer"></div>
+        <br>
+        <!--Add Custom General Scheme-->
+        <label for="newSchemeInput">Add Custom Scheme:</label>
+        <input type="text" id="newSchemeInput" placeholder="e.g. Duo">
+        <button type="button" id="addSchemeButton">Add Scheme</button>
+        <br><br>
         <!--Playcall Button-->
             <!--Populated by Playbook-->
                 <!--label for="playCall">Play Call:</label>-->
@@ -53,6 +65,11 @@
         <div id="playbookContainer"></div>
         <input type="hidden" id="selectedPlay" value="">
         <br>
+        <!--Add Custom Playcall-->
+        <label for="newPlayInput">Add Custom Play:</label>
+        <input type="text" id="newPlayInput" placeholder="e.g. Option">
+        <button type="button" id="addPlayButton">Add Play</button>
+        <br><br>
         <!--Tag Selection-->
         <label>Tags:</label>
         <div id="tagsContainer"></div>
@@ -77,12 +94,15 @@
     <script>
         console.log("loaded property")
         //Custom Playbook list
-        let playbook=["Inside Zone","Counter","Power","Pin & Pull","Outside Zone"];
+        let playbook=[];
+        let scheme=["Inside Zone","Counter","Power","Pin & Pull","Outside Zone"];
         let availableTags=["speed","hop","zip"]
+        let availableSchemes=JSON.parse(localStorage.getItem("savedSchemes")) || [];
         console.log(playbook);
         let selectedHash = "";
         let selectedFront = "";
         let tagsArray = [];
+        let schemesArray=[];
         //Convert Each Play Into a Button
         function loadPlaybook(){
             let container = document.getElementById("playbookContainer");
@@ -138,6 +158,101 @@
         }
         //load avaiable tags
         loadTags();
+        //Load Schemes
+        let schemesContainer = document.getElementById("schemesContainer");
+        let newSchemeInput = document.getElementById("newSchemeInput");
+        let addSchemeButton = document.getElementById("addSchemeButton");
+        addSchemeButton.onclick = function addScheme(){
+            let newScheme = newSchemeInput.value.trim();
+            if(newScheme && !availableSchemes.includes(newScheme)){
+                availableSchemes.push(newScheme);
+                //saves to browser history
+                localStorage.setItem("savedSchemes", JSON.stringify(availableSchemes));
+                loadSchemes();
+                newSchemeInput.value = "";
+            }
+        };
+        // Create/display new plays from input field
+        let playbookContainer = document.getElementById("playbookContainer");
+        let newPlayInput = document.getElementById("newPlayInput"); 
+        let addPlayButton = document.getElementById("addPlayButton");
+        addPlayButton.onclick = function addPlay(){
+            let newPlay = newPlayInput.value.trim();
+            if(newPlay && !playbook.includes(newPlay)){
+                playbook.push(newPlay);
+                loadPlaybook();
+                newPlayInput.value = "";
+            }
+        };
+        //load plays from local storage and display them as buttons
+        function loadPlaybook(){
+            let container = document.getElementById("playbookContainer");
+            container.innerHTML = ""; //clear old buttons
+            //loop through each play in our array
+            playbook.forEach(function(play) {
+                //New Element Button
+                let button = document.createElement("button");
+                button.type = "button";
+                button.innerText = play;
+                //Set What Happens when You Click Play
+                button.onclick = function(){
+                    console.log(play);
+                    //highlight button clicked
+                    button.style.background = "yellow";
+                    //Save Selected PLay into Hidden Input
+                    document.getElementById("selectedPlay").value = play;
+                    console.log("Selected Play Updated To:",play);
+                };
+                //add the new button to conatiner
+                container.appendChild(button);
+            });
+        }
+
+        //load Schemes from local storage and display them as buttons
+        function loadSchemes(){
+            let container = document.getElementById("schemesContainer");
+            container.innerHTML=""; //clear the selction of old buttons
+            //loops through each scheme to ensure no cop y and add X to each button
+            availableSchemes.forEach(scheme=>{
+                let wrapper=document.createElement("span");
+                wrapper.style.marginRight="8px";
+                //change background color for used/unused buttons
+                let button=document.createElement("button");
+                button.type=button;
+                button.innerText=scheme;
+                //yellow highlight seleceted
+                if (schemesArray.includes(scheme)){
+                    button.style.backgroundColor="yellow";
+                }
+                button.onclick=function(){
+                    let index=schemesArray.indexOf(scheme);
+                    if (index===-1){
+                        schemesArray.push(scheme);
+                        button.style.backgroundColor="yellow";
+                    } else{
+                        schemesArray.splice(index,1);
+                        button.style.background="";
+                    }
+                };
+                let deleteBtn=document.createElement("button");
+                deleteBtn.type="button";
+                deleteBtn.innerText="X";
+                deleteBtn.onclick=function(){
+                    //remove stored schemes list
+                    let sIndex=availableSchemes.indexOf(scheme);
+                    if (sIndex!==-1) availableSchemes.splice(sIndex,1);
+                    //remove from currently active selction
+                    let selIndex=schemesArray.indexOf(scheme);
+                    if (selIndex!==-1) schemesArray.splice(selIndex,1);
+                    //update local storage
+                    localStorage.setItem("savedSchemes", JSON.stringify(availableSchemes));
+                    loadSchemes();
+                };
+                wrapper.appendChild(button);
+                wrapper.appendChild(deleteBtn);
+                container.appendChild(wrapper);
+            });
+        }
         //Store logged in-game plays
         let gameLog = [];
         function logPlay(){
@@ -155,10 +270,6 @@
                 alert("Please Select a Play Call First");
                 return;
             }
-            //tags for play
-            let tagsInput=document.getElementById("skillTags");
-            let rawTags=tagsInput?tagsInput.value:"";
-            let tagsArray=rawTags?rawTags.split(",").map(t=>t.trim()):["None"];
             //combine data into a single play object
             let playData={
                 down: +currentDown,
@@ -207,6 +318,33 @@
                 document.getElementById("totalPlays").innerText=totalPlays;
                 document.getElementById("totalYards").innerText=totalYards;
                 document.getElementById("avgYards").innerText=avgYards;
+            // Scheme Breakdwon Stats
+                let schemeStats={};
+                gameLog.forEach(play=>{
+                    play.schemes.forEach(scheme=>{
+                        if (scheme === "None") return;
+
+                        if (!schemeStats[scheme]){
+                            schemeStats[scheme]={calls:0, totalYards:0, successful:0};
+                        }
+                        schemeStats[scheme].calls++;
+                        schemeStats[scheme].totalYards+=play.yardsGained;
+                        if (successfulPlay(play)){
+                            schemeStats[scheme].successful++;
+                        }
+                    });
+                });
+                // Update Scheme Breakdown Display
+                let container=document.getElementById("playBreakdownContainer");
+                let tableHtml="<table><tr><th>Scheme</th><th>Calls</th><th>Total Yards</th><th>Avg Yards</th><th>Success Rate</th></tr>";
+                for (let scheme in schemeStats){
+                    let stats=schemeStats[scheme];
+                    let avgYards=(stats.totalYards/stats.calls).toFixed(1);
+                    let successRate=Math.round((stats.successful/stats.calls)*100).toFixed(1)+"%";
+                    tableHtml+=`<tr><td>${scheme}</td><td>${stats.calls}</td><td>${stats.totalYards}</td><td>${avgYards}</td><td>${successRate}</td></tr>`;
+                }
+                tableHtml+="</table>";
+                container.innerHTML=tableHtml;
             }
             updateDashboard();
         function resetPlaySelection(){
@@ -223,10 +361,15 @@
             frontButtons.forEach(btn=>btn.style.backgroundColor="");
             selectedFront="";    
             //clear tag selection
-            let tagButtons=document.querySelectorAll("#tagContainer button");
+            let tagButtons=document.querySelectorAll("#tagsContainer button");
             tagButtons.forEach(btn=>btn.style.backgroundColor="");
-            selectedTag="";
-            loadTags();                    
+            tagsArray=[];
+            loadTags();  
+            //clear Scheme Selection
+            let schemeButtons=document.querySelectorAll("#schemesContainer button");
+            schemeButtons.forEach(btn=>btn.style.backgroundColor="");
+            schemesArray=[];
+            loadSchemes();                  
         }
         function selectHash(hashValue){
             console.log("hash Clicked", hashValue);
@@ -251,7 +394,16 @@
                 }
             });
         }
-        
+//Function to determine if a play is successful based on down, distance, and yards gained
+        function isPlaySuccessful(play){
+            let down = play.down;
+            let distance = play.distance;
+            let yardsGained = play.yardsGained;
+            if (down === 1) return yardsgained >= .5 * distance;
+            if (down === 2) return yardsgained >= .7 * distance;
+            if (down === 3 || down === 4) return yardsgained >= distance;
+            return false;
+        }
         
     </script>
 </body>
