@@ -2,409 +2,152 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src = "chart.min.js"></script>
     <title>Football App</title>
 </head>
-<body>
+<div>
+    <nav class="tab-nav">
+        <button type="button" class="tab-btn active" id="btnInput">Log Play</button>
+        <button type="button" class="tab-btn" id="btnAnalytics">Analytics</button>
+    </nav>
     <h1> Football App</h1>
-    <div class="dashboard">
-        <div class="stat-box">
-            <h3>Total Plays</h3>
-            <p id="totalPlays">0</p>
+    <div id="analyticsTab" class="tab-content">
+        <div class = 'card'>
+            <div class="dashboard">
+                <div class="stat-box">
+                    <h3>Total Plays</h3>
+                    <p id="totalPlays">0</p>
+                </div>
+                <div class="stat-box">
+                    <h3>Total Yards</h3>
+                    <p id="totalYards">0</p>
+                </div>
+                <div class="stat-box">
+                    <h3>Avg Yards</h3>
+                    <p id="avgYards">0</p>
+                </div>
+            </div>
         </div>
-        <div class="stat-box">
-            <h3>Total Yards</h3>
-            <p id="totalYards">0</p>
-        </div>
-        <div class="stat-box">
-            <h3>Avg Yards</h3>
-            <p id="avgYards">0</p>
-        </div>
-        <div class="stat-box">
-            <h3>Play Breakdwon</h3>
+        <div class = 'card'>
+            <div class = 'charts-container'>
+                <div class = 'chart-box'>
+                        <h3>Play Call Frequency</h3>
+                        <canvas id = "schemeChart" ></canvas>
+                </div>
+                <div class = 'chart-box'>
+                        <h3>Scheme Efficiency</h3>
+                        <canvas id = "schemeEfficiencyChart"></canvas>
+                </div>
+            </div>
             <div id="playBreakdownContainer"></div>
         </div>
-    </div>
-    <form id="playForm">
-        <!--Dropdown for Down Selection-->
-        <label for="down">Down:</label>
-        <select id="down">
-            <option value="1">1st</option>
-            <option value="2">2nd</option>
-            <option value="3">3rd</option>
-            <option value="4">4th</option>
-        </select>
-        <!--<br> is a line break-->
-        <br><br>
-        <!--Input for Distance-->
-        <label for="distance">Distance to Go:</label>
-        <input type="number" id="distance" value="10">
-        <br><br>
-        <!--Field Position Selector-->
-        <label>Hash:</label><br>
-        <div id="hashContainer">
-            <button type="button" onclick="selectHash('Left')">Left</button>
-            <button type="button" onclick="selectHash('Middle')">Middle</button>
-            <button type="button" onclick="selectHash('Right')">Right</button>
         </div>
-        <br>
-        <!-- Scheme Selection-->
-        <label for="schemesContainer">Scheme:</label><br>
-        <div id="schemesContainer"></div>
-        <br>
-        <!--Add Custom General Scheme-->
-        <label for="newSchemeInput">Add Custom Scheme:</label>
-        <input type="text" id="newSchemeInput" placeholder="e.g. Duo">
-        <button type="button" id="addSchemeButton">Add Scheme</button>
-        <br><br>
-        <!--Playcall Button-->
-            <!--Populated by Playbook-->
-                <!--label for="playCall">Play Call:</label>-->
-                <!--Do not need for because it is not a single thing, it is multiple buttons-->
-        <label for="selectedPlay">Play Call:</label><br>
-        <div id="playbookContainer"></div>
-        <input type="hidden" id="selectedPlay" value="">
-        <br>
-        <!--Add Custom Playcall-->
-        <label for="newPlayInput">Add Custom Play:</label>
-        <input type="text" id="newPlayInput" placeholder="e.g. Option">
-        <button type="button" id="addPlayButton">Add Play</button>
-        <br><br>
-        <!--Tag Selection-->
-        <label>Tags:</label>
-        <div id="tagsContainer"></div>
-        <br>
-        <!--Front Selection-->
-        <label>Front:</label>
-        <div id="frontContainer">
-            <button type="button" onclick="selectFront('Over')">Over</button>
-            <button type="button" onclick="selectFront('Under')">Under</button>
-            <button type="button" onclick="selectFront('Okie')">Okie</button>
-            <button type="button" onclick="selectFront('Mint')">Mint</button>
-            <button type="button" onclick="selectFront('Bear')">Bear</button>
+        <div id="inputTab" class="tab-content active">
+        <form id="playForm" class="form-grid">
+            <div class = 'card'>
+                    <!--Dropdown for Down Selection-->
+                    <label for="down"><h2>Down:</h2></label>
+                    <select id="down" class="select-btns">
+                        <option value="1">1st</option>
+                        <option value="2">2nd</option>
+                        <option value="3">3rd</option>
+                        <option value="4">4th</option>
+                    </select>
+                <!--<br> is a line break-->
+                <br><br>
+                <!--Input for Distance-->
+                <label for="distance"><h2>Distance to Go:</h2></label>
+                <input type="number" id="distance" value="10" class="select-btns">
+                <br><br>
+                    <!--Field Position Selector-->
+                    <label><h2>Field Position:</h2></label><br>
+                    <div id="hashContainer">
+                        <button type="button" class = 'select-btns' onclick="selectHash('Left')">Left</button>
+                        <button type="button" class = 'select-btns' onclick="selectHash('Middle')">Middle</button>
+                        <button type="button" class = 'select-btns' onclick="selectHash('Right')">Right</button>
+                    </div>
+                <br>
+            </div>
+            <!-- Scheme Selection-->
+            <div class = 'card'>
+                    <label for="schemesContainer"><h2>Scheme:</h2></label><br>
+                    <div id="schemesContainer"></div>
+                    <br>
+                <!--Add Custom General Scheme-->
+                <label for="newSchemeInput">Add Custom Scheme:</label>
+                <input type="text" id="newSchemeInput" placeholder="e.g. Duo">
+                <button type="button" id="addSchemeButton" class="add-btn">Add Scheme</button>
+                <br><br>
+            </div>
+            <!--Playcall Button-->
+                <!--Populated by Playbook-->
+                    <!--label for="playCall">Play Call:</label>-->
+                    <!--Do not need for because it is not a single thing, it is multiple buttons-->
+            <div class = 'card'>
+                <label for="selectedPlay"><h2>Play Call:</h2></label><br>
+                <div id="playbookContainer"></div>
+                <input type="hidden" id="selectedPlay" value="" >
+                <br>
+                <!--Add Custom Playcall-->
+                <label for="newPlayInput">Add Custom Play:</label>
+                <input type="text" id="newPlayInput" placeholder="e.g. Option">
+                <button type="button" id="addPlayButton" class="add-btn">Add Play</button>
+                <br><br>
+            </div>
+                <!--Tag Selection-->
+                <div class = 'card'>
+                <label><h2>Tags:</h2></label>
+                <div id="tagsContainer"></div>
+                <br>
+            <!--Add Custom Tag-->
+            <label for="newTagInput">Add Custom Tag:</label>
+            <input type="text" id="newTagInput" placeholder="e.g. Speed">
+            <button type="button" id="addTagButton" class="add-btn">Add Tag</button>
+            <br><br>
+            </div>
+            <div class = 'card'>
+                    <!--Front Selection-->
+                    <label><h2>Front:</h2></label>
+                    <div id="frontContainer">
+                        <button type="button" class="select-btns" onclick="selectFront('Over')">Over</button>
+                        <button type="button" class="select-btns" onclick="selectFront('Under')">Under</button>
+                        <button type="button" class="select-btns" onclick="selectFront('Okie')">Okie</button>
+                        <button type="button" class="select-btns" onclick="selectFront('Mint')">Mint</button>
+                        <button type="button" class="select-btns" onclick="selectFront('Bear')">Bear</button>
+                    </div>
+                <br>
+                    <!--Yards Gained/Loss Input-->
+                    <label for="yardsGained"><h2>Yards Gained:</h2></label>
+                    <input type="number" id="yardsGained" value="0" class="select-btns">
+                    <br>
+                    <div id="quickPlayBtns">
+                        <button type="button" id="incomplete-btn" class="select-btns">Incomplete</button>
+                        <button type="button" id="sack-btn" class="select-btns">Sack</button>
+                        <button type="button" id="penalty-btn" class="select-btns">Penalty</button>
+                    </div>
+                    <br>
+            </div>
+            <!--Submit Button-->
+            <button type="button" onclick="logPlay()" class="add-btn">Log Play</button>
+            <div class = 'card'>
+                <h3>Import Play data from CSV</h3>
+                <p> Download our template, fill in your plays, and upload the file</p>
+                <button type="button" id="downloadTemplateButton" class="select-btns">Download CSV Template</button>
+                <input type="file" id="csvFileInput" accept=".csv">
+                <button type="button" id="importCsvButton" class="add-btn">Import CSV</button>
+            </div>
+            <div class = 'card'>
+                <button type="button" id="exportGameLog" class="add-btn">Export Game Log</button>
+                <button type="button" id="resetGameLog" class="delete-btn">Reset Game Log</button>
+            </div>
+        </form>
         </div>
-        <br>
-        <!--Yards Gained/Loss Input-->
-        <label for="yardsGained">Yards Gained:</label>
-        <input type="number" id="yardsGained" value="0">
-        <br><br>
-        <!--Submit Button-->
-        <button type="button" onclick="logPlay()">Log Play</button>
-    </form>
-    <script>
-        console.log("loaded property")
-        //Custom Playbook list
-        let playbook=[];
-        let scheme=["Inside Zone","Counter","Power","Pin & Pull","Outside Zone"];
-        let availableTags=["speed","hop","zip"]
-        let availableSchemes=JSON.parse(localStorage.getItem("savedSchemes")) || [];
-        console.log(playbook);
-        let selectedHash = "";
-        let selectedFront = "";
-        let tagsArray = [];
-        let schemesArray=[];
-        //Convert Each Play Into a Button
-        function loadPlaybook(){
-            let container = document.getElementById("playbookContainer");
-            container.innerHTML = ""; //clear old buttons
-            //loop through each play in our array
-            playbook.forEach(function(play) {
-                //New Element Button
-                let button = document.createElement("button");
-                button.type = "button";
-                button.innerText = play;
-                //Set What Happens when You Click Play
-                button.onclick = function(){
-                    console.log(play);
-
-                    //highlight button clicked
-                    button.style.background = "yellow";
-                    //Save Selected PLay into Hidden Input
-                    document.getElementById("selectedPlay").value = play;
-                    console.log("Selected Play Updated To:",play);
-                };
-                //add the new button to conatiner
-                container.appendChild(button);
-            });
-        }
-        //load avaible Plays
-        loadPlaybook();
-
-        function loadTags(){
-            let container = document.getElementById("tagsContainer");
-            container.innerHTML = ""; //clear old buttons
-            //loop through each play in our array
-            availableTags.forEach(tag=> {
-                //New Element Button
-                let button = document.createElement("button");
-                button.type = "button";
-                button.innerText = tag;
-                //Set What Happens when You Click Play
-                button.onclick = function(){
-                    console.log(tag);
-                    let index=tagsArray.indexOf(tag);
-                    if(index===-1){
-                        tagsArray.push(tag);
-                        //highlight button clicked
-                        button.style.backgroundColor = "yellow";
-                    } else {
-                        tagsArray.splice(index,1);
-                        button.style.background="";
-                    };
-                };
-                //add the new button to conatiner
-                container.appendChild(button);
-            });
-        }
-        //load avaiable tags
-        loadTags();
-        //Load Schemes
-        let schemesContainer = document.getElementById("schemesContainer");
-        let newSchemeInput = document.getElementById("newSchemeInput");
-        let addSchemeButton = document.getElementById("addSchemeButton");
-        addSchemeButton.onclick = function addScheme(){
-            let newScheme = newSchemeInput.value.trim();
-            if(newScheme && !availableSchemes.includes(newScheme)){
-                availableSchemes.push(newScheme);
-                //saves to browser history
-                localStorage.setItem("savedSchemes", JSON.stringify(availableSchemes));
-                loadSchemes();
-                newSchemeInput.value = "";
-            }
-        };
-        // Create/display new plays from input field
-        let playbookContainer = document.getElementById("playbookContainer");
-        let newPlayInput = document.getElementById("newPlayInput"); 
-        let addPlayButton = document.getElementById("addPlayButton");
-        addPlayButton.onclick = function addPlay(){
-            let newPlay = newPlayInput.value.trim();
-            if(newPlay && !playbook.includes(newPlay)){
-                playbook.push(newPlay);
-                loadPlaybook();
-                newPlayInput.value = "";
-            }
-        };
-        //load plays from local storage and display them as buttons
-        function loadPlaybook(){
-            let container = document.getElementById("playbookContainer");
-            container.innerHTML = ""; //clear old buttons
-            //loop through each play in our array
-            playbook.forEach(function(play) {
-                //New Element Button
-                let button = document.createElement("button");
-                button.type = "button";
-                button.innerText = play;
-                //Set What Happens when You Click Play
-                button.onclick = function(){
-                    console.log(play);
-                    //highlight button clicked
-                    button.style.background = "yellow";
-                    //Save Selected PLay into Hidden Input
-                    document.getElementById("selectedPlay").value = play;
-                    console.log("Selected Play Updated To:",play);
-                };
-                //add the new button to conatiner
-                container.appendChild(button);
-            });
-        }
-
-        //load Schemes from local storage and display them as buttons
-        function loadSchemes(){
-            let container = document.getElementById("schemesContainer");
-            container.innerHTML=""; //clear the selction of old buttons
-            //loops through each scheme to ensure no cop y and add X to each button
-            availableSchemes.forEach(scheme=>{
-                let wrapper=document.createElement("span");
-                wrapper.style.marginRight="8px";
-                //change background color for used/unused buttons
-                let button=document.createElement("button");
-                button.type=button;
-                button.innerText=scheme;
-                //yellow highlight seleceted
-                if (schemesArray.includes(scheme)){
-                    button.style.backgroundColor="yellow";
-                }
-                button.onclick=function(){
-                    let index=schemesArray.indexOf(scheme);
-                    if (index===-1){
-                        schemesArray.push(scheme);
-                        button.style.backgroundColor="yellow";
-                    } else{
-                        schemesArray.splice(index,1);
-                        button.style.background="";
-                    }
-                };
-                let deleteBtn=document.createElement("button");
-                deleteBtn.type="button";
-                deleteBtn.innerText="X";
-                deleteBtn.onclick=function(){
-                    //remove stored schemes list
-                    let sIndex=availableSchemes.indexOf(scheme);
-                    if (sIndex!==-1) availableSchemes.splice(sIndex,1);
-                    //remove from currently active selction
-                    let selIndex=schemesArray.indexOf(scheme);
-                    if (selIndex!==-1) schemesArray.splice(selIndex,1);
-                    //update local storage
-                    localStorage.setItem("savedSchemes", JSON.stringify(availableSchemes));
-                    loadSchemes();
-                };
-                wrapper.appendChild(button);
-                wrapper.appendChild(deleteBtn);
-                container.appendChild(wrapper);
-            });
-        }
-        //Store logged in-game plays
-        let gameLog = [];
-        function logPlay(){
-            //get values from inputs
-            let currentDown=+document.getElementById("down").value;
-            console.log("Current Down:", currentDown);
-            let currentDistance=+document.getElementById("distance").value;
-            console.log("Current Distance:", currentDistance);
-            let currentPlay=document.getElementById("selectedPlay").value;
-            console.log("Current Play:", currentPlay);
-            let currentYards=+document.getElementById("yardsGained").value;
-            console.log("Current Yards:", currentYards);
-            //check if play is selected
-            if (currentPlay===""){
-                alert("Please Select a Play Call First");
-                return;
-            }
-            //combine data into a single play object
-            let playData={
-                down: +currentDown,
-                distance: +currentDistance,
-                basePlay: currentPlay, //OL call/Skill call
-                tags: tagsArray.length>0?[...tagsArray]:["None"], //uses active tags
-                front: selectedFront, //vs front
-                hash: selectedHash, //left or right
-                yardsGained: +currentYards
-            };
-            console.log(playData);
-
-            //print entire game log to browser console to verify
-            console.log("Play Logged", playData);
-            console.log("All Game Data:",gameLog);
-            //Variable for next play
-            let nextDown;
-            let nextDistance;
-            //calculate next down based off yards gained
-            if (currentYards>=currentDistance){
-                nextDown= 1;
-                nextDistance= 10;
-            } else{
-                nextDown=+currentDown+1;
-                nextDistance=+currentDistance- +currentYards;
-            }
-            gameLog.push(playData);
-            document.getElementById("down").value=nextDown;
-            document.getElementById("distance").value=nextDistance;
-            console.log(nextDown);
-            console.log(nextDistance);
-            updateDashboard();
-            resetPlaySelection();
-        }
-        function updateDashboard(){
-                let totalYards=0;
-                //Calculate total yards
-                gameLog.forEach(play=>{
-                    totalYards+= +play.yardsGained;
-                });
-                //Calulate AVG yards
-                let totalPlays=gameLog.length;
-                //Avoid dividing by zero
-                let avgYards=totalPlays>0?(totalYards/totalPlays).toFixed(1):0;
-                //Update HTML Displays
-                document.getElementById("totalPlays").innerText=totalPlays;
-                document.getElementById("totalYards").innerText=totalYards;
-                document.getElementById("avgYards").innerText=avgYards;
-            // Scheme Breakdwon Stats
-                let schemeStats={};
-                gameLog.forEach(play=>{
-                    play.schemes.forEach(scheme=>{
-                        if (scheme === "None") return;
-
-                        if (!schemeStats[scheme]){
-                            schemeStats[scheme]={calls:0, totalYards:0, successful:0};
-                        }
-                        schemeStats[scheme].calls++;
-                        schemeStats[scheme].totalYards+=play.yardsGained;
-                        if (successfulPlay(play)){
-                            schemeStats[scheme].successful++;
-                        }
-                    });
-                });
-                // Update Scheme Breakdown Display
-                let container=document.getElementById("playBreakdownContainer");
-                let tableHtml="<table><tr><th>Scheme</th><th>Calls</th><th>Total Yards</th><th>Avg Yards</th><th>Success Rate</th></tr>";
-                for (let scheme in schemeStats){
-                    let stats=schemeStats[scheme];
-                    let avgYards=(stats.totalYards/stats.calls).toFixed(1);
-                    let successRate=Math.round((stats.successful/stats.calls)*100).toFixed(1)+"%";
-                    tableHtml+=`<tr><td>${scheme}</td><td>${stats.calls}</td><td>${stats.totalYards}</td><td>${avgYards}</td><td>${successRate}</td></tr>`;
-                }
-                tableHtml+="</table>";
-                container.innerHTML=tableHtml;
-            }
-            updateDashboard();
-        function resetPlaySelection(){
-            //clear playcall selection
-            let playButtons=document.querySelectorAll("#playbookContainer button");
-            playButtons.forEach(btn=>btn.style.backgroundColor="");
-            document.getElementById("selectedPlay").value="";
-            //clear hash selection
-            let hashButtons=document.querySelectorAll("#hashContainer button");
-            hashButtons.forEach(btn=>btn.style.backgroundColor="");
-            selectedHash="";
-            //clear front selection
-            let frontButtons=document.querySelectorAll("#frontContainer button");
-            frontButtons.forEach(btn=>btn.style.backgroundColor="");
-            selectedFront="";    
-            //clear tag selection
-            let tagButtons=document.querySelectorAll("#tagsContainer button");
-            tagButtons.forEach(btn=>btn.style.backgroundColor="");
-            tagsArray=[];
-            loadTags();  
-            //clear Scheme Selection
-            let schemeButtons=document.querySelectorAll("#schemesContainer button");
-            schemeButtons.forEach(btn=>btn.style.backgroundColor="");
-            schemesArray=[];
-            loadSchemes();                  
-        }
-        function selectHash(hashValue){
-            console.log("hash Clicked", hashValue);
-            selectedHash=hashValue;
-            let buttons=document.querySelectorAll("#hashContainer button");
-            buttons.forEach(btn=>{
-                if (btn.innerText === hashValue){
-                    btn.style.backgroundColor="yellow";
-                } else {
-                    btn.style.background = "";
-                }
-            });
-        }
-        function selectFront(frontValue){
-            selectedFront=frontValue;
-            let buttons=document.querySelectorAll("#frontContainer button");
-            buttons.forEach(btn=>{
-                if (btn.innerText === frontValue){
-                    btn.style.background="yellow";
-                } else {
-                    btn.style.background = "";
-                }
-            });
-        }
-//Function to determine if a play is successful based on down, distance, and yards gained
-        function isPlaySuccessful(play){
-            let down = play.down;
-            let distance = play.distance;
-            let yardsGained = play.yardsGained;
-            if (down === 1) return yardsgained >= .5 * distance;
-            if (down === 2) return yardsgained >= .7 * distance;
-            if (down === 3 || down === 4) return yardsgained >= distance;
-            return false;
-        }
         
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
