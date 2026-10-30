@@ -5,12 +5,14 @@
         let tag=["Speed","Orbit","Hop","Jet","Motion","Play Action","Screen","RPO"];
         let availableTags=JSON.parse(localStorage.getItem("savedTags")) || tag;
         let availableSchemes=JSON.parse(localStorage.getItem("savedSchemes")) || scheme;
+        let availableFormations=JSON.parse(localStorage.getItem("savedFormations")) || tag;
         console.log(playbook);
         let selectedHash = "";
         let selectedFront = "";
         let tagsArray = [];
         let schemesArray=[];
         let playsArray=[];
+        let formationsArray=[];
         loadPlaybook();
         loadTags();
         loadSchemes();
@@ -135,6 +137,22 @@
                 newSchemeInput.value = "";
             }
         };
+
+//create foramtions display btns
+        let formationContainer = document.getElementById("formationContainer");
+        let newformationInput = document.getElementById("newFormationInput"); 
+        let addformationButton = document.getElementById("addFormationButton");
+        addformationButton.onclick = function addFormation(){
+            let newFormation = newFormationInput.value.trim();
+            let exists = playbook.some(p=>(typeof p === "object" ? p.play:p) === newPlay);
+            if(newFormation && !availableFormations.includes(newFormation)){
+                availableFormations.push(newFormation);
+                localStorage.setItem("savedFormations", JSON.stringify(availableFormations));
+                loadFormations();
+                newFormationInput.value = "";
+            }
+        };
+
         // Create/display new plays from input field
         let playbookContainer = document.getElementById("playbookContainer");
         let newPlayInput = document.getElementById("newPlayInput"); 
@@ -274,7 +292,7 @@
                 container.appendChild(wrapper);
             });
         }
-                function loadTags(){
+        function loadTags(){
             let container = document.getElementById("tagsContainer");
             container.innerHTML = ""; //clear old buttons
             //loop through each play in our array
@@ -324,6 +342,58 @@
         }
         //load avaiable tags
         loadTags();
+
+//Load foramtions
+function loadFormations(){
+            let container = document.getElementById("formationsContainer");
+            container.innerHTML = ""; //clear old buttons
+            //loop through each play in our array
+            availableFormations.forEach(formation=> {
+                let wrapper=document.createElement("span");
+                wrapper.classList.add("btn-pill");
+                wrapper.style.marginRight="8px";
+                //New Element Button
+                let button = document.createElement("button");
+                button.classList.add("select-btns");
+                button.type = "button";
+                button.innerText = tag;
+                //Set What Happens when You Click Play
+                button.onclick = function(){
+                    console.log(formation);
+                    let index=formationsArray.indexOf(formation);
+                    if(index===-1){
+                        formationsArray.push(formation);
+                        //highlight button clicked
+                        button.style.backgroundColor = "yellow";
+                    } else {
+                        formationsArray.splice(index,1);
+                        button.style.background="";
+                    };
+                };
+                //add delete button for each tag
+                let deleteFormationBtn = document.createElement("button");
+                deleteFormationBtn.classList.add("delete-btn");
+                deleteFormationBtn.type = "button";
+                deleteFormationBtn.innerText = "X";
+                deleteFormationBtn.onclick=function(){
+                    //remove stored tags list
+                    let fIndex=availableFormations.indexOf(formation);
+                    if (fIndex!==-1) availableFormations.splice(fIndex,1);
+                    //remove from currently active selction
+                    let selsIndex=formationsArray.indexOf(formation);
+                    if (selsIndex!==-1) formationsArray.splice(selsIndex,1);
+                    //update local storage
+                    localStorage.setItem("savedFormations", JSON.stringify(availableFormations));
+                    loadFormations();
+                };
+                //add the new button to conatiner
+                wrapper.appendChild(button);
+                wrapper.appendChild(deleteFormationBtn);
+                container.appendChild(wrapper);
+            });
+        }
+        //load avaiable tags
+        loadFormations();
         //Store logged in-game plays
         let gameLog = JSON.parse(localStorage.getItem("savedGame")) || [];
         function logPlay(){
@@ -346,12 +416,14 @@
             let playData={
                 down: +currentDown,
                 distance: +currentDistance,
+                formations: formationsArray.length >0? [...formationsArray]:["none"],
                 schemes: schemesArray.length >0?[...schemesArray]:["None"], //uses active schemes
                 basePlay: currentPlay, //OL call/Skill call
                 tags: tagsArray.length>0?[...tagsArray]:["None"], //uses active tags
                 front: selectedFront, //vs front
                 hash: selectedHash, //left or right
-                yardsGained: +currentYards
+                yardsGained: +currentYards,
+                isPenalty: isPenalty
             };
             console.log(playData);
 
@@ -456,7 +528,9 @@
             let schemeButtons=document.querySelectorAll("#schemesContainer button");
             schemeButtons.forEach(btn=>btn.style.backgroundColor="");
             schemesArray=[];
-            loadSchemes();                  
+            loadSchemes();     
+            //reset Peanlty
+            penaltyBtn.classList.remove('active');             
         }
         function selectHash(hashValue){
             console.log("hash Clicked", hashValue);

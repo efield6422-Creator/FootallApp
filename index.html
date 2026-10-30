@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="icon" href="data:,">
+    <meta name="mobile-web-app-capable" content="yes">
     <link rel="apple-touch-icon" href="icon-192.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
@@ -72,6 +73,16 @@
                         <button type="button" class = 'select-btns' onclick="selectHash('Right')">Right</button>
                     </div>
                 <br>
+            </div>
+            <div class = 'card'>
+                    <label for="formationsContainer"><h2>Formation:</h2></label><br>
+                    <div id="formationsContainer"></div>
+                    <br>
+                <!--Add Custom General Scheme-->
+                <label for="newFormationInput">Add Custom Formation:</label>
+                <input type="text" id="newFormationInput" placeholder="e.g. Duo">
+                <button type="button" id="addFormationButton" class="add-btn">Add Formation</button>
+                <br><br>
             </div>
             <!-- Scheme Selection-->
             <div class = 'card'>
