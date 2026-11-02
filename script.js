@@ -356,7 +356,7 @@ function loadFormations(){
                 let button = document.createElement("button");
                 button.classList.add("select-btns");
                 button.type = "button";
-                button.innerText = tag;
+                button.innerText = formation;
                 //Set What Happens when You Click Play
                 button.onclick = function(){
                     console.log(formation);
@@ -370,7 +370,7 @@ function loadFormations(){
                         button.style.background="";
                     };
                 };
-                //add delete button for each tag
+                //add delete button for each formation
                 let deleteFormationBtn = document.createElement("button");
                 deleteFormationBtn.classList.add("delete-btn");
                 deleteFormationBtn.type = "button";
@@ -426,7 +426,11 @@ function loadFormations(){
                 isPenalty: isPenalty
             };
             console.log(playData);
-
+            window.savePlayToCloud(playData);
+            window.onPlaysUpdated = function(plays){
+                gameLog = plays;
+                updateDashboard();
+            };
             //print entire game log to browser console to verify
             console.log("Play Logged", playData);
             console.log("All Game Data:",gameLog);

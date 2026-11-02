@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="data:,">
+    <link rel = "shortcut icon" href = "#">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="apple-touch-icon" href="icon-192.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -158,7 +159,52 @@
             </div>
         </form>
         </div>
-        
+        <script type = "module">
+            console.log("firebase module loading...")
+            import {initializeApp} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+            import {getAuth} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+            import {
+                getFirestore,
+                enableMultiTabIndexedDbPersistence,
+                collection, 
+                addDoc,
+                onSnapshot,
+            } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+            const firebaseConfig = {
+                apiKey: "AIzaSyDE1oJryM2qrCpi9aKd7v84hfh4uWF5sh0",
+                authDomain: "football-analytics-app-37021.firebaseapp.com",
+                projectId: "football-analytics-app-37021",
+                storageBucket: "football-analytics-app-37021.firebasestorage.app",
+                messagingSenderId: "114856979175",
+                appId: "1:114856979175:web:f6adfde1eecace65a55042",
+                measurementId: "G-8PZ72X51MC"
+            };
+            const app = initializeApp(firebaseConfig);
+            const auth  = getAuth(app);
+            window.db = getFirestore(app);
+            enableMultiTabIndexedDbPersistence(window.db).catch((err) => {
+                console.error("Failed to enable persistence:", err);
+            });
+            //Helper function to save plays to Firebase
+            window.savePlayToCloud = async function (playData) {
+                try{
+                    await addDoc(collection(window.db, "plays"), playData);
+                    console.log("Play Saved to cloud");
+                } catch (error) {
+                    console.error("Error saving play to cloud:", error);
+                }
+            };
+            onSnapshot(collection(window.db, "plays"), (snapshot) => {
+                let cloudPlays = [];
+                snapshot.forEach((doc) => {
+                    cloudPlays.push(doc.data());
+                });
+                console.log("Real-time Cloud Plays:", cloudPlays);
+                if (typeof window.onPlaysUpdated === "function") {
+                    window.onPlaysUpdated(cloudPlays);
+                }
+            });
+        </script>
     <script src="script.js"></script>
 </body>
 </html>
