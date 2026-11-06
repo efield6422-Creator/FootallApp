@@ -12,10 +12,22 @@
     <script src = "chart.min.js"></script>
     <title>Football App</title>
 </head>
-<div>
+<body>
+    <div id="authSection" class = "auth-container">
+        <h2>Coach Login</h2>
+        <input type = "email" id = "authEmail" placeholder = "Enter Email" required>
+        <input type = "password" id = "authPassword" placeholder = "Enter Password" required>
+        <div class = "auth-buttons">
+            <button type = "button" id = "loginBtn">Login</button>
+            <button type = "button" id = "signUpBtn">Sign Up</button>
+            <button type = "button" id = "logoutBtn">Logout</button>
+        </div>
+        <p id="authMessage" style="color: red;"></p>
+    </div>
     <nav class="tab-nav">
         <button type="button" class="tab-btn active" id="btnInput">Log Play</button>
         <button type="button" class="tab-btn" id="btnAnalytics">Analytics</button>
+        <button type = "button" class="tab-btn" id="btnPlaybook">Playbook</button>
     </nav>
     <h1> Football App</h1>
     <div id="analyticsTab" class="tab-content">
@@ -36,6 +48,43 @@
             </div>
         </div>
         <div class = 'card'>
+            <div class = "card-filter-bar">
+                <h3>Situational Filters</h3>
+                <div class = "form-grid">
+                    <div>
+                        <label for = "filter-quarter">Quarter</label>
+                        <select id="filter-quarter">
+                            <option value = "all">All Quarters</option>
+                            <option value = "1">Q1</option>
+                            <option value = "2">Q2</option>
+                            <option value = "3">Q3</option>
+                            <option value = "4">Q4</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for = "filter-down">Down</label>
+                        <select id="filter-down">
+                            <option value = "all">All Downs</option>
+                            <option value = "1">1st</option>
+                            <option value = "2">2nd</option>
+                            <option value = "3">3rd</option>
+                            <option value = "4">4th</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for = "filter-formation">Formation</label>
+                        <select id = "filter-formation">
+                            <option value = "all">All Formations</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for = "filter-front">Front</label>
+                        <select id = "filter-front">
+                            <option value = "all">All Fronts</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
             <div class = 'charts-container'>
                 <div class = 'chart-box'>
                         <h3>Play Call Frequency</h3>
@@ -46,12 +95,48 @@
                         <canvas id = "schemeEfficiencyChart"></canvas>
                 </div>
             </div>
-            <div id="playBreakdownContainer"></div>
+            <div id="playBreakDownContainer"></div>
         </div>
+    </div>
+    <div id="playbookTab" class="tab-content">
+        <div class = 'card'>
+            <h2>Playbook</h2>
+            <button type="button" id="downloadTemplateButton" class="select-btns">Download CSV Template</button>
+            <input type="file" id="csvFileInput" accept=".csv">
+            <button type="button" id="importCsvButton" class="add-btn">Import CSV</button>
+            <button type="button" id="exportGameLog" class="add-btn">Export Game Log</button>
+            <button type="button" id="resetGameLog" class="delete-btn">Reset Game Log</button>
         </div>
+        <div class="card">
+            <!--Add Custom General Formation-->
+            <label for="newFormationInput">Add Custom Formation:</label>
+            <input type="text" id="newFormationInput" placeholder="e.g. Deuce Rt">
+            <button type="button" id="addFormationButton" class="add-btn">Add Formation</button>
+            <!--Add Custom Playcall-->
+            <label for="newPlayInput">Add Custom Play:</label>
+            <input type="text" id="newPlayInput" placeholder="e.g. Option">
+            <button type="button" id="addPlayButton" class="add-btn">Add Play</button>
+            <!--Add Custom Tag-->
+            <label for="newTagInput">Add Custom Tag:</label>
+            <input type="text" id="newTagInput" placeholder="e.g. Speed">
+            <button type="button" id="addTagButton" class="add-btn">Add Tag</button>
+            <!--Add Custom General Scheme-->
+            <label for="newSchemeInput">Add Custom Scheme:</label>
+            <input type="text" id="newSchemeInput" placeholder="e.g. Duo">
+            <button type="button" id="addSchemeButton" class="add-btn">Add Scheme</button>
+        </div>
+    </div>
         <div id="inputTab" class="tab-content active">
         <form id="playForm" class="form-grid">
             <div class = 'card'>
+                <label for="quarter"><h2>Quarter:</h2></label>
+                <select id = "quarter" class = "select-btns">
+                    <option value="1">Q1</option>
+                    <option value="2">Q2</option>
+                    <option value="3">Q3</option>
+                    <option value="4">Q4</option>
+                </select>
+                <br><br>
                     <!--Dropdown for Down Selection-->
                     <label for="down"><h2>Down:</h2></label>
                     <select id="down" class="select-btns">
@@ -79,22 +164,12 @@
                     <label for="formationsContainer"><h2>Formation:</h2></label><br>
                     <div id="formationsContainer"></div>
                     <br>
-                <!--Add Custom General Scheme-->
-                <label for="newFormationInput">Add Custom Formation:</label>
-                <input type="text" id="newFormationInput" placeholder="e.g. Duo">
-                <button type="button" id="addFormationButton" class="add-btn">Add Formation</button>
-                <br><br>
             </div>
             <!-- Scheme Selection-->
             <div class = 'card'>
                     <label for="schemesContainer"><h2>Scheme:</h2></label><br>
                     <div id="schemesContainer"></div>
                     <br>
-                <!--Add Custom General Scheme-->
-                <label for="newSchemeInput">Add Custom Scheme:</label>
-                <input type="text" id="newSchemeInput" placeholder="e.g. Duo">
-                <button type="button" id="addSchemeButton" class="add-btn">Add Scheme</button>
-                <br><br>
             </div>
             <!--Playcall Button-->
                 <!--Populated by Playbook-->
@@ -105,22 +180,12 @@
                 <div id="playbookContainer"></div>
                 <input type="hidden" id="selectedPlay" value="" >
                 <br>
-                <!--Add Custom Playcall-->
-                <label for="newPlayInput">Add Custom Play:</label>
-                <input type="text" id="newPlayInput" placeholder="e.g. Option">
-                <button type="button" id="addPlayButton" class="add-btn">Add Play</button>
-                <br><br>
             </div>
                 <!--Tag Selection-->
                 <div class = 'card'>
                 <label><h2>Tags:</h2></label>
                 <div id="tagsContainer"></div>
                 <br>
-            <!--Add Custom Tag-->
-            <label for="newTagInput">Add Custom Tag:</label>
-            <input type="text" id="newTagInput" placeholder="e.g. Speed">
-            <button type="button" id="addTagButton" class="add-btn">Add Tag</button>
-            <br><br>
             </div>
             <div class = 'card'>
                     <!--Front Selection-->
@@ -145,30 +210,29 @@
                     <br>
             </div>
             <!--Submit Button-->
-            <button type="button" onclick="logPlay()" class="add-btn">Log Play</button>
-            <div class = 'card'>
-                <h3>Import Play data from CSV</h3>
-                <p> Download our template, fill in your plays, and upload the file</p>
-                <button type="button" id="downloadTemplateButton" class="select-btns">Download CSV Template</button>
-                <input type="file" id="csvFileInput" accept=".csv">
-                <button type="button" id="importCsvButton" class="add-btn">Import CSV</button>
-            </div>
-            <div class = 'card'>
-                <button type="button" id="exportGameLog" class="add-btn">Export Game Log</button>
-                <button type="button" id="resetGameLog" class="delete-btn">Reset Game Log</button>
-            </div>
+            <button type="button" onclick="logPlay()" class="add-btn log-play-btn">Log Play</button>
         </form>
         </div>
         <script type = "module">
             console.log("firebase module loading...")
             import {initializeApp} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-            import {getAuth} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+            import{
+                getAuth,
+                createUserWithEmailAndPassword,
+                signInWithEmailAndPassword,
+                signOut,
+                onAuthStateChanged,
+                deleteUser,
+                updateProfile,
+            } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
             import {
-                getFirestore,
-                enableMultiTabIndexedDbPersistence,
+                initializeFirestore,
+                persistentLocalCache,
                 collection, 
                 addDoc,
-                onSnapshot,
+                onSnapshot, 
+                query,
+                where,
             } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
             const firebaseConfig = {
                 apiKey: "AIzaSyDE1oJryM2qrCpi9aKd7v84hfh4uWF5sh0",
@@ -181,12 +245,17 @@
             };
             const app = initializeApp(firebaseConfig);
             const auth  = getAuth(app);
-            window.db = getFirestore(app);
-            enableMultiTabIndexedDbPersistence(window.db).catch((err) => {
-                console.error("Failed to enable persistence:", err);
+            window.db = initializeFirestore(app, {
+                localCache: persistentLocalCache()
             });
             //Helper function to save plays to Firebase
             window.savePlayToCloud = async function (playData) {
+                const user = auth.currentUser;
+                if (!user){
+                    alert("Please Sign in to save plays");
+                    return;
+                }
+                playData.userId = user.uid;
                 try{
                     await addDoc(collection(window.db, "plays"), playData);
                     console.log("Play Saved to cloud");
@@ -194,17 +263,40 @@
                     console.error("Error saving play to cloud:", error);
                 }
             };
-            onSnapshot(collection(window.db, "plays"), (snapshot) => {
-                let cloudPlays = [];
-                snapshot.forEach((doc) => {
-                    cloudPlays.push(doc.data());
-                });
-                console.log("Real-time Cloud Plays:", cloudPlays);
-                if (typeof window.onPlaysUpdated === "function") {
-                    window.onPlaysUpdated(cloudPlays);
+            //Listen for Auth state change (Login/log out)
+            let unsubscribeFromPlays = null;
+            onAuthStateChanged(auth, (user) => {
+                if (unsubscribeFromPlays) unsubscribeFromPlays();
+                if (user) {
+                    console.log("User is signed in:", user.email , "UID:", user.uid);
+                    const q  = query(collection(window.db, "plays"), where("userId", "==", user.uid));
+                    unsubscribeFromPlays = onSnapshot(q, (snapshot) => {
+                        let cloudPlays = [];
+                        snapshot.forEach((doc) => {
+                            cloudPlays.push(doc.data());
+                        });
+                        console.log("Real-time Cloud Plays for User:", cloudPlays);
+                        if (typeof window.onPlaysUpdated === "function") {
+                            window.onPlaysUpdated(cloudPlays);
+                        }
+                    });
+                } else {
+                    console.log("User is signed out");
+                    if (typeof window.onPlaysUpdated === "function") {
+                        window.onPlaysUpdated([]);
+                    }
                 }
             });
+            window.signUpUser = (email, password) => {
+                return createUserWithEmailAndPassword(auth, email, password);
+            };
+            window.signInUser = (email, password) => {
+                return signInWithEmailAndPassword(auth, email, password);
+            };
+            window.signOutUser = () => {
+                return signOut(auth);
+            };
         </script>
-    <script src="script.js"></script>
+    <script type ="module" src="script.js"></script>
 </body>
 </html>

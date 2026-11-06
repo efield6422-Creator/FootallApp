@@ -1,51 +1,71 @@
+    import {playbook, availableSchemes, availableTags, availableFormations, gameLog, setGameLog, saveStateToStorage} from './src/core/state.js';
     console.log("loaded property")
         //Custom Playbook list
-        let playbook=JSON.parse(localStorage.getItem("savedPlays")) || [];
         let scheme=["Inside Zone","Counter","Power","Pin & Pull","Outside Zone"];
         let tag=["Speed","Orbit","Hop","Jet","Motion","Play Action","Screen","RPO"];
-        let availableTags=JSON.parse(localStorage.getItem("savedTags")) || tag;
-        let availableSchemes=JSON.parse(localStorage.getItem("savedSchemes")) || scheme;
-        let availableFormations=JSON.parse(localStorage.getItem("savedFormations")) || tag;
         console.log(playbook);
-        let selectedHash = "";
-        let selectedFront = "";
-        let tagsArray = [];
-        let schemesArray=[];
-        let playsArray=[];
-        let formationsArray=[];
+    
         loadPlaybook();
         loadTags();
         loadSchemes();
         let myChart = null;
         let myChartEff = null;
+        //Login Variables
+        const authEmail = document.getElementById("authEmail");
+        const authPassword = document.getElementById("authPassword");
+        const loginBtn = document.getElementById("loginBtn");
+        const signUpBtn = document.getElementById("signUpBtn");
+        const logoutBtn = document.getElementById("logoutBtn");
+        const authMessage = document.getElementById("authMessage");
+        const filterIds = ['filter-quarter', 'filter-down', 'filter-formation', 'filter-front'];
+        filterIds.forEach(id => {
+            document.getElementById(id).addEventListener('change', updateDashboard);
+        });
 //nav bar 
         const btnInput = document.getElementById("btnInput");
         const btnAnalytics = document.getElementById("btnAnalytics");
+        const btnPlaybook = document.getElementById("btnPlaybook");
         const inputTab = document.getElementById("inputTab");
         const analyticsTab = document.getElementById("analyticsTab");
+        const playbookTab = document.getElementById("playbookTab");
         btnInput.addEventListener("click",function(){
             //show Input, Hide Analytics
             inputTab.classList.add("active");
             analyticsTab.classList.remove("active");
+            playbookTab.classList.remove("active");
 
             //update active button Styling
             btnInput.classList.add("active");
             btnAnalytics.classList.remove("active");
+            btnPlaybook.classList.remove("active");
         });
         btnAnalytics.addEventListener("click",function(){
             //show analytics, hide input
             analyticsTab.classList.add("active");
             inputTab.classList.remove("active");
+            playbookTab.classList.remove("active");
 
             //update aactive button styling
             btnAnalytics.classList.add("active");
             btnInput.classList.remove("active");
+            btnPlaybook.classList.remove("active");
+        });
+        btnPlaybook.addEventListener("click",function(){
+            //show playbook, hide input and analytics
+            playbookTab.classList.add("active");
+            inputTab.classList.remove("active");
+            analyticsTab.classList.remove("active");
+
+            //update active button styling
+            btnPlaybook.classList.add("active");
+            btnInput.classList.remove("active");
+            btnAnalytics.classList.remove("active");
         });
         //CSV Import Stuff
         //Download CSV Template
         document.getElementById("downloadTemplateButton").addEventListener("click",function(){
-            const csvHeader = "Play,Scheme,Tags,Fronts\n";
-            const sampleRow = ["zebra","Inside Zone","Speed","Over"];
+            const csvHeader = "Play,Scheme,Tags,Fronts,Formations\n";
+            const sampleRow = ["zebra","Inside Zone","Speed","Over","12"];
             const blob = new Blob([csvHeader + sampleRow], { type: "text/csv" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
@@ -69,8 +89,10 @@
                 for (let i = 1; i < lines.length; i++) {
                     const row = lines[i].trim();
                     if (row) {
-                        const [play, scheme, tags, front] = row.split(',')
-                        let trimmedPlay  = play.trim();
+                        const [play, scheme, tags, front, formations] = row.split(',');
+                        let trimmedTags = tags ? tags.trim() : "";
+                        let trimmedPlay  = play ? play.trim(): "";
+                        if (!trimmedPlay) continue;
                         let trimmedScheme = scheme ? scheme.trim():"";
                         let exists = playbook.some(function(item){
                             let existingName = typeof item === "object" ? item.play : item;
@@ -78,42 +100,46 @@
                         });
                         if (!exists){
                             playbook.push({
-                                play: play.trim(),
-                                scheme: scheme.trim()
+                                play: trimmedPlay,
+                                scheme: trimmedScheme,
+                                tags: trimmedTags,
+                                fronts: front ? front.trim() : "",
+                                formations: formations ? formations.trim() : ""
                             });
                         }
-                        if (scheme && !availableSchemes.includes(scheme)) {
-                            availableSchemes.push(scheme);
+                        if (trimmedScheme && !availableSchemes.includes(trimmedScheme)) {
+                            availableSchemes.push(trimmedScheme);
                         }
-                        if (tags && !availableTags.includes(tags)) {
-                            availableTags.push(...tags.split(';').map(tag => tag.trim()));
+                        if (trimmedTags && !availableTags.includes(trimmedTags)) {
+                            availableTags.push(trimmedTags);
                         }
+                        if (formations && !availableFormations.includes(formations)) {
+                            availableFormations.push(formations);
+                        }
+                        console.log("Imported Play:", trimmedPlay, "Scheme:", trimmedScheme, "Tags:", trimmedTags, "Front:", front ? front.trim() : "", "Formations:", formations ? formations.trim() : "");
                     }
                 }
                         localStorage.setItem("savedPlays", JSON.stringify(playbook));
                         localStorage.setItem("savedSchemes", JSON.stringify(availableSchemes));
                         localStorage.setItem("savedTags", JSON.stringify(availableTags));
-                        if (typeof loadTags === "function") {
-                            loadTags();
-                        }
-                        if (typeof loadSchemes === "function") {
-                            loadSchemes();
-                        }
-                        if (typeof loadPlaybook === "function") {
-                            loadPlaybook();
-                        }
-                        console.log("Imported Play:", play, "Scheme:", scheme, "Tags:", tags, "Front:", front);
+                        localStorage.setItem("savedFormations", JSON.stringify(availableFormations));
+                loadSchemes();
+                loadTags();
+                loadFormations();
+                loadPlaybook();
                 alert("CSV Import Complete.");
+                fileInput.value = "";
             };
             reader.readAsText(file);
         });
 // Export CSV GameLog Data
         document.getElementById("exportGameLog").addEventListener("click",function(){
-            const csvHeader = "down,distance,schemes,basePlay,tags,fronts,hash,yardsGained\n";
+            const csvHeader = "down,distance,schemes,basePlay,tags,fronts,hash,yardsGained,formations\n";
             let csvRows = gameLog.map(play=>{
+                let formationsStr = play.formations.join(",");
                 let schemesStr = play.schemes.join(",");
                 let tagsStr = play.tags.join(",");
-                return `${play.down},${play.distance},${schemesStr},${play.basePlay},${tagsStr},${play.front},${play.hash},${play.yardsGained}`;
+                return `${play.down},${play.distance},${schemesStr},${play.basePlay},${tagsStr},${play.front},${play.hash},${play.yardsGained},${formationsStr}`;
             });
             const blob = new Blob([csvHeader + csvRows.join('\n')], { type: "text/csv" });
             const url = URL.createObjectURL(blob);
@@ -144,7 +170,6 @@
         let addformationButton = document.getElementById("addFormationButton");
         addformationButton.onclick = function addFormation(){
             let newFormation = newFormationInput.value.trim();
-            let exists = playbook.some(p=>(typeof p === "object" ? p.play:p) === newPlay);
             if(newFormation && !availableFormations.includes(newFormation)){
                 availableFormations.push(newFormation);
                 localStorage.setItem("savedFormations", JSON.stringify(availableFormations));
@@ -202,22 +227,28 @@
                 button.innerText = playName;
                 //Set What Happens when You Click Play
                 button.onclick = function(){
-                    console.log(play);
-                    document.querySelectorAll("#playbookContainer .select-btns").forEach(btn=>btn.style.backgroundColor = "");
-                    //highlight button clicked
-                    button.style.background = "yellow";
+                    const selectedInput = document.getElementById("selectedPlay");
+                    const isAlreadySelected = (selectedInput.value === playName);
+                    document.querySelectorAll("#playbookContainer .select-btns").forEach(btn=>btn.classList.remove('selected'));
+                    //highlight button clicked/Clear color is clicked again
+                    if (isAlreadySelected){
+                        selectedInput.value = "";
+                        schemesArray = [];
+                        loadSchemes();
+                    } else {
+                        button.classList.add('selected');
+                        selectedInput.value = playName;
+                    }
                     //Save Selected PLay into Hidden Input
-                    document.getElementById("selectedPlay").value = playName;
-                    console.log("Selected Play Updated To:",playName);
                     schemesArray = [];
                     let schemesBtns = document.querySelectorAll("#schemesContainer .select-btns")
-                    schemesBtns.forEach(btn => btn.style.backgroundColor = "");
+                    schemesBtns.forEach(btn => btn.classList.remove('selected'));
                     console.log("looking for scheme:", schemeName)
                     if (schemeName){
                         schemesArray.push(schemeName);
                         schemesBtns.forEach(function(schemeBtn){
                             if (schemeBtn.innerText.trim() === schemeName.trim()){
-                                schemeBtn.style.backgroundColor = "yellow";
+                                schemeBtn.classList.add('selected');
                             }
                         });
                     }
@@ -240,9 +271,37 @@
                 container.appendChild(wrapper);
             });
         }
-    
-    
-
+//sign  up  button
+        signUpBtn.addEventListener("click", () => {
+            const email = authEmail.value;
+            const password = authPassword.value;
+            window.signUpUser(email,password)
+                .then((useerCredential) => {
+                    authMessage.textContent = "Sign up successful." + useerCredential.user.email;
+                }).catch((err) => {
+                    authMessage.textContent = "Sign up failed: " + err.message;
+                });
+        });
+//login  button
+        loginBtn.addEventListener("click", () => {
+            const email = authEmail.value;
+            const password = authPassword.value;
+            window.signInUser(email,password)
+                .then((userCredential) => {
+                    authMessage.textContent = "Login successful." + userCredential.user.email;
+                }).catch((err) => {
+                    authMessage.textContent = "Login failed: " + err.message;
+                });
+        });
+//logout  button
+        logoutBtn.addEventListener("click", () => {
+            window.signOutUser()
+                .then(() => {
+                    authMessage.textContent = "Logout successful.";
+                }).catch((err) => {
+                    authMessage.textContent = "Logout failed: " + err.message;
+                });
+        });
         //load Schemes from local storage and display them as buttons
         function loadSchemes(){
             let container = document.getElementById("schemesContainer");
@@ -257,18 +316,18 @@
                 button.classList.add("select-btns");
                 button.type="button";
                 button.innerText=scheme;
-                //yellow highlight seleceted
+                //#ff6b00 highlight seleceted
                 if (schemesArray.includes(scheme)){
-                    button.style.backgroundColor="yellow";
+                    button.classList.add('selected');
                 }
                 button.onclick=function(){
                     let index=schemesArray.indexOf(scheme);
                     if (index===-1){
                         schemesArray.push(scheme);
-                        button.style.backgroundColor="yellow";
+                        button.classList.add('selected');
                     } else{
                         schemesArray.splice(index,1);
-                        button.style.background="";
+                        button.classList.remove('selected');
                     }
                     loadPlaybook();
                 };
@@ -312,10 +371,10 @@
                     if(index===-1){
                         tagsArray.push(tag);
                         //highlight button clicked
-                        button.style.backgroundColor = "yellow";
+                        button.classList.add('selected');
                     } else {
                         tagsArray.splice(index,1);
-                        button.style.background="";
+                        button.classList.remove('selected');
                     };
                 };
                 //add delete button for each tag
@@ -364,10 +423,10 @@ function loadFormations(){
                     if(index===-1){
                         formationsArray.push(formation);
                         //highlight button clicked
-                        button.style.backgroundColor = "yellow";
+                        button.classList.add('selected');
                     } else {
                         formationsArray.splice(index,1);
-                        button.style.background="";
+                        button.classList.remove('selected');
                     };
                 };
                 //add delete button for each formation
@@ -395,73 +454,23 @@ function loadFormations(){
         //load avaiable tags
         loadFormations();
         //Store logged in-game plays
-        let gameLog = JSON.parse(localStorage.getItem("savedGame")) || [];
-        function logPlay(){
-            //get values from inputs
-            const isPenalty = penaltyBtn.classList.contains('active');
-            let currentDown=+document.getElementById("down").value;
-            console.log("Current Down:", currentDown);
-            let currentDistance=+document.getElementById("distance").value;
-            console.log("Current Distance:", currentDistance);
-            let currentPlay=document.getElementById("selectedPlay").value;
-            console.log("Current Play:", currentPlay);
-            let currentYards=+document.getElementById("yardsGained").value;
-            console.log("Current Yards:", currentYards);
-            //check if play is selected
-            if (currentPlay===""){
-                alert("Please Select a Play Call First");
-                return;
-            }
-            //combine data into a single play object
-            let playData={
-                down: +currentDown,
-                distance: +currentDistance,
-                formations: formationsArray.length >0? [...formationsArray]:["none"],
-                schemes: schemesArray.length >0?[...schemesArray]:["None"], //uses active schemes
-                basePlay: currentPlay, //OL call/Skill call
-                tags: tagsArray.length>0?[...tagsArray]:["None"], //uses active tags
-                front: selectedFront, //vs front
-                hash: selectedHash, //left or right
-                yardsGained: +currentYards,
-                isPenalty: isPenalty
-            };
-            console.log(playData);
-            window.savePlayToCloud(playData);
-            window.onPlaysUpdated = function(plays){
-                gameLog = plays;
-                updateDashboard();
-            };
-            //print entire game log to browser console to verify
-            console.log("Play Logged", playData);
-            console.log("All Game Data:",gameLog);
-            //Variable for next play
-            let nextDown;
-            let nextDistance;
-            //calculate next down based off yards gained
-            if (currentYards>=currentDistance){
-                nextDown= 1;
-                nextDistance= 10;
-            } else{
-                nextDown=+currentDown+1;
-                nextDistance=+currentDistance- +currentYards;
-            }
-            gameLog.push(playData);
-            localStorage.setItem("savedGame", JSON.stringify(gameLog));
-            document.getElementById("down").value=nextDown;
-            document.getElementById("distance").value=nextDistance;
-            console.log(nextDown);
-            console.log(nextDistance);
+
+       
+// kisten for updates from fireBase
+        window.onPlaysUpdated = function(cloudPlays){
+            gameLog = cloudPlays;
             updateDashboard();
-            resetPlaySelection();
-        }
+        };
         function updateDashboard(){
+            populateFilterDropdowns();
+            const dataToDisplay = getFilteredPlays();
                 let totalYards=0;
                 //Calculate total yards
-                gameLog.forEach(play=>{
+                dataToDisplay.forEach(play=>{
                     totalYards+= +play.yardsGained;
                 });
                 //Calulate AVG yards
-                let totalPlays=gameLog.length;
+                let totalPlays=dataToDisplay.length;
                 //Avoid dividing by zero
                 let avgYards=totalPlays>0?(totalYards/totalPlays).toFixed(1):0;
                 //Update HTML Displays
@@ -470,7 +479,7 @@ function loadFormations(){
                 document.getElementById("avgYards").innerText=avgYards;
             // Scheme Breakdwon Stats
                 let schemeStats={};
-                gameLog.forEach(play=>{
+                dataToDisplay.forEach(play=>{
                     if (play.schemes){
                         play.schemes.forEach(scheme=>{
                             if (scheme === "None") return;
@@ -491,14 +500,13 @@ function loadFormations(){
                 let dataCounts = labels.map(scheme => schemeStats[scheme].calls);
                 renderSchemeChart(labels, dataCounts);
 //Load/Populate Scheme Efficiency Chart
-                let labelseff = Object.keys(schemeStats);
-                let efficiencyData = labelseff.map(scheme => {
+                let efficiencyData = labels.map(scheme => {
                     let stats = schemeStats[scheme];
                     return Math.round((stats.successful / stats.calls) * 100);
                 });
-                renderSchemeChartEff(labelseff, efficiencyData);
+                renderSchemeChartEff(labels, efficiencyData);
                 // Update Scheme Breakdown Display
-                let container=document.getElementById("playBreakdownContainer");
+                let container=document.getElementById("playBreakDownContainer");
                 let tableHtml="<table border='1' cellPadding='5'><tr><th>Scheme</th><th>Calls</th><th>Total Yards</th><th>Avg Yards</th><th>Success Rate</th></tr>";
                 for (let scheme in schemeStats){
                     let stats=schemeStats[scheme];
@@ -510,55 +518,8 @@ function loadFormations(){
                 container.innerHTML=tableHtml;
             }
             updateDashboard();
-        function resetPlaySelection(){
-            //clear playcall selection
-            let playButtons=document.querySelectorAll("#playbookContainer button");
-            playButtons.forEach(btn=>btn.style.backgroundColor="");
-            document.getElementById("selectedPlay").value="";
-            //clear hash selection
-            let hashButtons=document.querySelectorAll("#hashContainer button");
-            hashButtons.forEach(btn=>btn.style.backgroundColor="");
-            selectedHash="";
-            //clear front selection
-            let frontButtons=document.querySelectorAll("#frontContainer button");
-            frontButtons.forEach(btn=>btn.style.backgroundColor="");
-            selectedFront="";    
-            //clear tag selection
-            let tagButtons=document.querySelectorAll("#tagsContainer button");
-            tagButtons.forEach(btn=>btn.style.backgroundColor="");
-            tagsArray=[];
-            loadTags();  
-            //clear Scheme Selection
-            let schemeButtons=document.querySelectorAll("#schemesContainer button");
-            schemeButtons.forEach(btn=>btn.style.backgroundColor="");
-            schemesArray=[];
-            loadSchemes();     
-            //reset Peanlty
-            penaltyBtn.classList.remove('active');             
-        }
-        function selectHash(hashValue){
-            console.log("hash Clicked", hashValue);
-            selectedHash=hashValue;
-            let buttons=document.querySelectorAll("#hashContainer button");
-            buttons.forEach(btn=>{
-                if (btn.innerText === hashValue){
-                    btn.style.backgroundColor="yellow";
-                } else {
-                    btn.style.background = "";
-                }
-            });
-        }
-        function selectFront(frontValue){
-            selectedFront=frontValue;
-            let buttons=document.querySelectorAll("#frontContainer button");
-            buttons.forEach(btn=>{
-                if (btn.innerText === frontValue){
-                    btn.style.background="yellow";
-                } else {
-                    btn.style.background = "";
-                }
-            });
-        }
+        
+        
 //Function to determine if a play is successful based on down, distance, and yards gained
         function successfulPlay(play){
             let down = play.down;
@@ -574,15 +535,17 @@ function loadFormations(){
         let sackBtn = document.getElementById("sack-btn");
         let penaltyBtn = document.getElementById("penalty-btn");
         incompleteBtn.addEventListener('click', ()=>{
+            incompleteBtn.classList.toggle('selected');
             document.getElementById('yardsGained').value = 0;
         });
         sackBtn.addEventListener('click',()=>{
+            sackBtn.classList.toggle('selected');
             const yardsInput = document.getElementById('yardsGained');
             yardsInput.focus();
             yardsInput.select();
         });
         penaltyBtn.addEventListener('click',() =>{
-            penaltyBtn.classList.toggle('active');
+            penaltyBtn.classList.toggle('selected');
         });
 
 //render Pie Chart for Scheme Counts
@@ -590,6 +553,9 @@ function loadFormations(){
             const ctx = document.getElementById('schemeChart').getContext('2d');
             if (myChart) {
                 myChart.destroy(); // Destroy the previous chart instance
+            } 
+            if(labels.length === 0 || dataCounts.length === 0){ 
+                return;
             }
             myChart = new Chart(ctx, {
                 type: 'pie',
@@ -598,19 +564,22 @@ function loadFormations(){
                     datasets:[{
                         data: dataCounts,
                         backgroundColor:[
-                            '#3498db', 
-                            '#e74c3c', 
-                            '#2ecc71', 
-                            '#f1c40f', 
-                            '#9b59b6', 
+                            '#ff6b00',
+                            '#38bdf8', 
+                            '#10b981',
+                            '#3b82f6', 
+                            '#64748b',
                             '#e67e22', 
                             '#1abc9c', 
                             '#34495e'
-                        ]
+                        ],
+                        borderColor: '#1e2631',
+                        borderWidth: 2
                     }]
                 },
                 options:{
                     responsive:true,
+                    maintainAspectRatio: true,
                     plugins:{
                         legend:{
                             position:'bottom'
@@ -619,25 +588,28 @@ function loadFormations(){
                 }
             });
         }
-//Pie Chart For Scheme Efficiency 
-        function renderSchemeChartEff(labelsEff, efficiencyData){
+//Bar Chart For Scheme Efficiency 
+        function renderSchemeChartEff(labels, efficiencyData){
             const ctx = document.getElementById('schemeEfficiencyChart').getContext('2d');
             if (myChartEff) {
                 myChartEff.destroy(); // Destroy the previous chart instance
             }
+            if(labels.length === 0 || efficiencyData.length === 0){ 
+                return;
+            }
             myChartEff = new Chart(ctx, {
                 type: 'bar',
                 data:{
-                    labels: labelsEff,
+                    labels: labels,
                     datasets:[{
                         label: 'Efficiency (%)',
                         data: efficiencyData,
                         backgroundColor:[
-                            '#3498db', 
-                            '#e74c3c', 
-                            '#2ecc71', 
-                            '#f1c40f', 
-                            '#9b59b6', 
+                            '#ff6b00',
+                            '#38bdf8', 
+                            '#10b981',
+                            '#3b82f6', 
+                            '#64748b',
                             '#e67e22', 
                             '#1abc9c', 
                             '#34495e'
@@ -646,7 +618,10 @@ function loadFormations(){
                 },
                 options:{
                     responsive:true,
-                    scales:{y: {beginAtZero:true, max:120}}
+                    maintainAspectRatio: false,
+                    scales:{
+                        x:{ticks:{color:'#f0f4f8'}, grid:{color:'#2e3846'}},
+                        y: {ticks:{color:'#f0f4f8'}, grid:{color:'#2e3846'}}}
                     },
                     plugins: [{
                         id: 'barValues',
@@ -654,7 +629,7 @@ function loadFormations(){
                             const {ctx} = chart;
                             ctx.save();
                             ctx.font = 'bold 12px Arial';
-                            ctx.fillStyle = '#333333';
+                            ctx.fillStyle = '#f0f4f8';
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'bottom';
                             chart.data.datasets.forEach((dataset, datasetIndex)=>{
@@ -671,6 +646,46 @@ function loadFormations(){
                     }]
             });
         }
+        //Filter Plays Function for Charts
+        function getFilteredPlays(){
+            const selectedQuarter = document.getElementById("filter-quarter").value;
+            const selectedDown = document.getElementById("filter-down").value;
+            const selectedFormation = document.getElementById("filter-formation").value;
+            const selectedFront = document.getElementById("filter-front").value;
+            return gameLog.filter(play => {
+                //rejects play if it does not fit the selected filters
+                if (selectedQuarter !== "all" && String(play.quarter) !== selectedQuarter) return false;
+                if (selectedDown !== "all" && String(play.down) !== selectedDown) return false;
+                if (selectedFormation !== "all" && (!play.formations || !play.formations.includes(selectedFormation))) return false;
+                if (selectedFront !== "all" && play.front !== selectedFront) return false;
+                return true;
+            });
+        }
+        //End of Filtered Plays Function
+
+        //Function to Auto-Populate the formation and front dropdowns
+        function populateFilterDropdowns(){
+            const formationsSelect = document.getElementById("filter-formation");
+            const frontsSelect = document.getElementById("filter-front");
+            const uniqueFormations = [...new Set(gameLog.flatMap(p=>p.formations || []))].filter(f=>f && f !=="none");
+            const uniqueFronts = [...new Set(gameLog.map(p=>p.front ? p.front.trim() :''))].filter(Boolean);
+            const currentFormation = formationsSelect.value;
+            const currentFront = frontsSelect.value;
+            formationsSelect.innerHTML = '<option value = "all">All Formations</option>';
+            uniqueFormations.forEach(formation => {
+                formationsSelect.innerHTML += `<option value="${formation}">${formation}</option>`;
+            });
+            formationsSelect.value = currentFormation;
+
+            frontsSelect.innerHTML = '<option value = "all">All Fronts</option>';
+            uniqueFronts.forEach(front => {
+                frontsSelect.innerHTML += `<option value="${front}">${front}</option>`;
+            });
+            frontsSelect.value = currentFront;
+        }
+        //end of Auto-Populate the formation and front dropdowns
+
+        //Reset Game log to clear all entries
         document.getElementById("resetGameLog").addEventListener("click",function(){
             if (confirm("Are you sure you want to reset the game log? This cannot be undone.")){
                 gameLog = [];

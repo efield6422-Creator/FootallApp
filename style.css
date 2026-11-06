@@ -1,15 +1,24 @@
 /**Overall styling for the app, including layout, colors, and typography.*/
+:root{
+    --bg-color:#121820;
+    --card-bg: #1e2631;
+    --text-main: #f0f4f8;
+    --text-muted: #94a3b8;
+    --accent-orange: #ff6b00;
+    --accent-orange-hover: #e05d00;
+    --border-color: #2e3846;
+}
 body {
-    font-family: arial, sans-serif;
-    background-color: #f5f5f5;
+    font-family: 'Segoe UI',roboto,system-ui,sans-serif;
+    background-color: var(--bg-color);
     margin: 20px;
-    color: #333;
+    color: var(--text-main);
 }
 
 /*Card Container Style*/
 .card {
-    background-color: #ffffff;
-    border: 1px solid #e0e0e0;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 16px;
     margin-bottom: 20px;
@@ -17,14 +26,22 @@ body {
 }
 
 /*Spacing for Inputs and Buttons*/
-input, select {
-    border: 1px solid #cccccc;
+input,select,textarea {
+    border: 1px solid var(--border-color);
     border-radius: 4px;
-    padding : 6px 12px;
+    padding: 6px 12px;
     margin-bottom: 6px;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    background-color: var(--bg-color);
+    transition: all 0.2s ease;
+}
+input:focus,select:focus,textarea:focus {
+    outline: none;
+    border-color: var(--accent-orange);
 }
 button {
-    border: 1px solid #bbbbbb;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     padding: 6px 12px;
     cursor: pointer;
@@ -36,39 +53,52 @@ button {
     flex-wrap: wrap;
     gap: 20px;
     width: 100%;
+    margin-bottom: 24px;
 }
 
 /* each chart takes up the same space*/
-.charts-box {
+.chart-box {
     flex: 1 1 300px;
     min-width: 0;
-    background-color: #ffffff;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background-color: var(--card-bg);
     padding: 16px;
     border-radius: 8px;
 }
-
+.chart-box canvas {
+    flex: 1;
+    min-height: 0;
+}
 /* Styling for the select buttons container */
 .select-btns {
     min-height: 50px;
     padding: 10px 16px;
     font-size: 1rem;
     font-weight: 700;
-    color: #2c3e50;
-    background-color: #ecf0f1;
-    border: 2px solid #bdc3c7;
+    color: var(--text-main);
+    background-color: var(--card-bg);
+    border: 2px solid var(--border-color);
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.15s ease;
     user-select: none;
 }
 .select-btns:hover {
-    background-color: #dfe6e9;
-    border-color: #7f8c8d;
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
 }
 .select-btns:active {
-    background-color: #3498db;
-    color: #ffffff;
-    border-color: #2980b9;
+    background-color: var(--accent-orange);
+    color: var(--text-main);
+    border-color: var(--accent-orange-hover);
+}
+.select-btns.selected{
+    background-color: var(--accent-orange);
+    color: #121820;
+    border-color: var(--accent-orange-hover);
 }
 
 /* Styling for the add buttons */
@@ -76,8 +106,8 @@ button {
     min-height:44px;
     font-size: 0.95rem;
     font-weight: 600;
-    background-color: #2ecc71;
-    color: #ffffff;
+    background-color: var(--accent-orange);
+    color: var(--text-main);
     border: none;
     padding: 6px 12px;
     border-radius: 6px;
@@ -85,11 +115,23 @@ button {
     transition: all 0.15s ease, transform 0.1s ease;
 }
 .add-btn:hover {
-    background-color: #27ae60;
+    background-color: var(--accent-orange-hover);
 }
 .add-btn:active {
     transform: scale(0.97);
 }
+
+/*Styling for Log Play Btn*/
+.log-play-btn {
+    width: 100%;
+    min-height:56px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-top: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(255, 107, 0, 0.3);
+}
+
 
 /* Styling for the delete buttons */
 .delete-btn {
@@ -97,22 +139,22 @@ button {
     padding: 10px 16px;
     font-size: 1rem;
     font-weight: 700;
-    color: #2c3e50;
-    background-color: #e74c3c;
-    border: 2px solid #bdc3c7;
+    color: #121820;
+    background-color: #dc2626;
+    border: 2px solid #dc2626;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.15s ease;
     user-select: none;
 }
 .delete-btn:hover {
-    background-color: #c0392b;
-    border-color: #7f8c8d;
+    background-color: #b91c1c;
+    border-color: #b91c1c;
 }
 .delete-btn:active {
-    background-color: #e74c3c;
-    color: #ffffff;
-    border-color: #c0392b;
+    background-color: #dc2626;
+    color: #121820;
+    border-color: #dc2626;
 }
 
 /*Connect the delete button to other buttons*/
@@ -150,7 +192,7 @@ button {
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
-    background-color: #f1f3f5;
+    background-color: var(--card-bg);
     padding: 8px;
     border-radius: 8px;
     width: fit-content;
@@ -161,17 +203,17 @@ button {
     background-color: transparent;
     font-size: 16px;
     font-weight: 600;
-    color: #495057;
+    color: var(--text-main);
     cursor: pointer;
     border-radius: 6px;
     transition: all 0.2s ease;
 }
 .tab-btn:hover{
-    background-color: #e9ecef;
+    background-color: #2a3441;
 }
 .tab-btn.active{
-    background-color: #007bff;
-    color: white;
+    background-color: var(--accent-orange);
+    color: var(--text-main);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 .tab-content{
@@ -179,4 +221,30 @@ button {
 }
 .tab-content.active{
     display: block;
+}
+
+table{
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+th{
+    background-color: #161c24;
+    color: var(--accent-orange);
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 2px solid var(--border-color);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+td{
+    padding: 12px 16px;
+    color: var(--text-main);
+    border-bottom: 1px solid var(--border-color);
+}
+tbody tr:hover{
+    background-color: rgba(255, 107, 0, 0.05);
 }

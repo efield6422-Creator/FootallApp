@@ -15,11 +15,40 @@ self.addEventListener('install',(event)=>{
         })
     );
 });
-//fetch event: Load from cache if offline
+//Activate event: clean old caches
+self.addEventListener('activate',(event)=>{
+    event.waitUntil(
+        caches.keys().then((cacheNames)=>{
+            return Promise.all(
+                cacheNames.map((cacheName)=>{
+                    if (cacheName !== CACHE_NAME){
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        }).then(()=>self.clients.claim())
+    );
+});
+// end activate event
+
+//Fetch Event: Try network first,then cache 
 self.addEventListener('fetch',(event)=>{
+    if (!event.request.url.startsWith(self.location.origin)) {
+        return;
+    }
     event.respondWith(
-        caches.match(event.request).then((cachedResponse)=>{
-            return cachedResponse || fetch(event.request);
+        fetch(event.request)
+            .then((networkResponse)=>{
+                if (networkResponse && networkResponse.status === 200){
+                    const responseClone = networkResponse.clone();
+                    caches.open(CACHE_NAME).then((cache)=>{
+                        cache.put(event.request, responseClone);
+                    });
+                }
+                return networkResponse;
         })
+    .catch((error)=>{
+        return caches.match(event.request);
+    })
     );
 });
