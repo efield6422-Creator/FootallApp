@@ -1,127 +1,84 @@
-import {gameLog, saveStateToStorage } from '../../core/state.js'
-export let selectedHash = "";
-export let selectedFront = "";
-export let tagsArray = [];
-export let schemesArray=[];
-export let playsArray=[];
-export let formationsArray=[];
+import { gameLog, selection, saveStateToStorage } from '../../core/state.js';
 
-window.selectHash =function (hashValue){
-    console.log("hash Clicked", hashValue);
-    selectedHash=hashValue;
-    let buttons=document.querySelectorAll("#hashContainer button");
-    buttons.forEach(btn=>{
-        if (btn.innerText === hashValue){
-            btn.classList.add('selected');
-        } else {
-            btn.classList.remove('selected');
-        }
+// Callbacks supplied by script.js (which owns the playbook/analytics UI).
+// Logger never imports script.js, so there is no circular import.
+let loadTags = () => {};
+let loadSchemes = () => {};
+let updateDashboard = () => {};
+
+export function initLogger(callbacks) {
+    loadTags = callbacks.loadTags || loadTags;
+    loadSchemes = callbacks.loadSchemes || loadSchemes;
+    updateDashboard = callbacks.updateDashboard || updateDashboard;
+    window.selectHash = selectHash;
+    window.selectFront = selectFront;
+    window.logPlay = logPlay;
+    window.resetPlaySelection = resetPlaySelection;
+}
+
+export function selectHash(hashValue) {
+    selection.selectedHash = hashValue;
+    document.querySelectorAll("#hashContainer button").forEach(btn => {
+        btn.classList.toggle('selected', btn.innerText === hashValue);
     });
 }
-window.selectFront = function(frontValue){
-    console.log("front Clicked", frontValue);
-    let buttons=document.querySelectorAll("#frontContainer button");
-    if (selectedFront === frontValue){
-        selectedFront = "";
-        buttons.forEach(btn=>btn.classList.remove('selected'));
-    } else {
-        selectedFront=frontValue;
-        buttons.forEach(btn=>{
-            if (btn.innerText === frontValue){
-                btn.classList.add('selected');
-            } else {
-                btn.classList.remove('selected');
-            }
-        });
-    }
+
+export function selectFront(frontValue) {
+    selection.selectedFront = selection.selectedFront === frontValue ? "" : frontValue;
+    document.querySelectorAll("#frontContainer button").forEach(btn => {
+        btn.classList.toggle('selected', btn.innerText === frontValue && selection.selectedFront !== "");
+    });
 }
 
-function resetPlaySelection(){
-    //clear playcall selection
-    let playButtons=document.querySelectorAll("#playbookContainer button");
-    playButtons.forEach(btn=>btn.classList.remove('selected'));
-    document.getElementById("selectedPlay").value="";
-    //clear hash selection
-    let hashButtons=document.querySelectorAll("#hashContainer button");
-    hashButtons.forEach(btn=>btn.classList.remove('selected'));
-    selectedHash="";
-    //clear front selection
-    let frontButtons=document.querySelectorAll("#frontContainer button");
-    frontButtons.forEach(btn=>btn.classList.remove('selected'));
-    selectedFront="";    
-    //clear tag selection
-    let tagButtons=document.querySelectorAll("#tagsContainer button");
-    tagButtons.forEach(btn=>btn.classList.remove('selected'));
-    tagsArray=[];
-    loadTags();  
-    //clear Scheme Selection
-    let schemeButtons=document.querySelectorAll("#schemesContainer button");
-    schemeButtons.forEach(btn=>btn.classList.remove('selected'));
-    schemesArray=[];
-    loadSchemes();     
-    //reset Peanlty
-    penaltyBtn.classList.remove('selected');
+export function resetPlaySelection() {
+    document.querySelectorAll("#playbookContainer button").forEach(btn => btn.classList.remove('selected'));
+    document.getElementById("selectedPlay").value = "";
+    document.querySelectorAll("#hashContainer button").forEach(btn => btn.classList.remove('selected'));
+    selection.selectedHash = "";
+    document.querySelectorAll("#frontContainer button").forEach(btn => btn.classList.remove('selected'));
+    selection.selectedFront = "";
+    document.querySelectorAll("#tagsContainer button").forEach(btn => btn.classList.remove('selected'));
+    selection.tags.length = 0;
+    loadTags();
+    document.querySelectorAll("#schemesContainer button").forEach(btn => btn.classList.remove('selected'));
+    selection.schemes.length = 0;
+    loadSchemes();
+    document.getElementById("penalty-btn")?.classList.remove('selected');
 }
 
-window.logPlay =function(){
-    //get values from inputs
-    let currentQuarter=+document.getElementById("quarter").value;
-    console.log("Current Quarter:", currentQuarter);
-    const isPenalty = penaltyBtn.classList.contains('active');
-    let currentDown=+document.getElementById("down").value;
-    console.log("Current Down:", currentDown);
-    let currentDistance=+document.getElementById("distance").value;
-    console.log("Current Distance:", currentDistance);
-    let currentPlay=document.getElementById("selectedPlay").value;
-    console.log("Current Play:", currentPlay);
-    let currentYards=+document.getElementById("yardsGained").value;
-    console.log("Current Yards:", currentYards);
-    //check if play is selected
-    if (currentPlay===""){
+export function logPlay() {
+    const currentQuarter = +document.getElementById("quarter").value;
+    const currentDown = +document.getElementById("down").value;
+    const currentDistance = +document.getElementById("distance").value;
+    const currentPlay = document.getElementById("selectedPlay").value;
+    const currentYards = +document.getElementById("yardsGained").value;
+    const isPenalty = document.getElementById("penalty-btn")?.classList.contains('selected') || false;
+    if (currentPlay === "") {
         alert("Please Select a Play Call First");
         return;
     }
-    //combine data into a single play object
-    let playData={
-        quarter: +currentQuarter,
-        down: +currentDown,
-        distance: +currentDistance,
-        formations: formationsArray.length >0? [...formationsArray]:["none"],
-        schemes: schemesArray.length >0?[...schemesArray]:["None"], //uses active schemes
-        basePlay: currentPlay, //OL call/Skill call
-        tags: tagsArray.length>0?[...tagsArray]:["None"], //uses active tags
-        front: selectedFront, //vs front
-        hash: selectedHash, //left or right
-        yardsGained: +currentYards,
-        isPenalty: isPenalty
+    const playData = {
+        quarter: currentQuarter,
+        down: currentDown,
+        distance: currentDistance,
+        formations: selection.formations.length > 0 ? [...selection.formations] : ["none"],
+        schemes: selection.schemes.length > 0 ? [...selection.schemes] : ["None"],
+        basePlay: currentPlay,
+        tags: selection.tags.length > 0 ? [...selection.tags] : ["None"],
+        front: selection.selectedFront,
+        hash: selection.selectedHash,
+        yardsGained: currentYards,
+        isPenalty,
     };
-    console.log(playData);
-    window.savePlayToCloud(playData);
-    //print entire game log to browser console to verify
-    console.log("Play Logged", playData);
-    console.log("All Game Data:",gameLog);
-    //Variable for next play
-    let nextDown;
-    let nextDistance;
-    //calculate next down based off yards gained
-    if (currentYards>=currentDistance){
-        nextDown= 1;
-        nextDistance= 10;
-    } else{
-        nextDown=+currentDown+1;
-        nextDistance=+currentDistance- +currentYards;
+    if (typeof window.savePlayToCloud === "function") {
+        window.savePlayToCloud(playData);
     }
+    const nextDown = currentYards >= currentDistance ? 1 : currentDown + 1;
+    const nextDistance = currentYards >= currentDistance ? 10 : currentDistance - currentYards;
     gameLog.push(playData);
-    localStorage.setItem("savedGame", JSON.stringify(gameLog));
-    document.getElementById("down").value=nextDown;
-    document.getElementById("distance").value=nextDistance;
-    console.log(nextDown);
-    console.log(nextDistance);
+    saveStateToStorage("savedGame", gameLog);
+    document.getElementById("down").value = nextDown;
+    document.getElementById("distance").value = nextDistance;
     updateDashboard();
     resetPlaySelection();
 }
-
-window.selectHash = selectHash;
-window.selectFront = selectFront;
-window.logPlay = logPlay;
-window.resetPlaySelection = resetPlaySelection;
