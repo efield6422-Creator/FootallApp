@@ -1,8 +1,7 @@
-    import {playbook, availableSchemes, availableTags, availableFormations, gameLog, setGameLog, saveStateToStorage} from './src/core/state.js';
+    import {playbook, availableSchemes, availableTags, availableFormations, gameLog, setGameLog, saveStateToStorage, selection} from './src/core/state.js';
+import {initLogger} from './src/features/logger/logger.js';
     console.log("loaded property")
         //Custom Playbook list
-        let scheme=["Inside Zone","Counter","Power","Pin & Pull","Outside Zone"];
-        let tag=["Speed","Orbit","Hop","Jet","Motion","Play Action","Screen","RPO"];
         console.log(playbook);
     
         loadPlaybook();
@@ -186,7 +185,7 @@
             let newPlay = newPlayInput.value.trim();
             let exists = playbook.some(p=>(typeof p === "object" ? p.play:p) === newPlay);
             if(newPlay && !exists){
-                let activeScheme = schemesArray.length>0 ? schemesArray[0]:"";
+                let activeScheme = selection.schemes.length>0 ? selection.schemes[0]:"";
                 playbook.push({play:newPlay, scheme:activeScheme});
                 localStorage.setItem("savedPlays", JSON.stringify(playbook));
                 loadPlaybook();
@@ -211,9 +210,9 @@
             let container = document.getElementById("playbookContainer");
             container.innerHTML = ""; //clear old buttons
             let playsToDisplay = playbook.filter(function(play){
-                if (schemesArray.length ===0) return true;
+                if (selection.schemes.length ===0) return true;
                 let playScheme = typeof play === "object" ? play.scheme: "";
-                return schemesArray.includes(playScheme);
+                return selection.schemes.includes(playScheme);
             });
             // lopp through filtered list
             playsToDisplay.forEach(function(play){
@@ -233,19 +232,19 @@
                     //highlight button clicked/Clear color is clicked again
                     if (isAlreadySelected){
                         selectedInput.value = "";
-                        schemesArray = [];
+                        selection.schemes.length = 0;
                         loadSchemes();
                     } else {
                         button.classList.add('selected');
                         selectedInput.value = playName;
                     }
                     //Save Selected PLay into Hidden Input
-                    schemesArray = [];
+                    selection.schemes.length = 0;
                     let schemesBtns = document.querySelectorAll("#schemesContainer .select-btns")
                     schemesBtns.forEach(btn => btn.classList.remove('selected'));
                     console.log("looking for scheme:", schemeName)
                     if (schemeName){
-                        schemesArray.push(schemeName);
+                        selection.schemes.push(schemeName);
                         schemesBtns.forEach(function(schemeBtn){
                             if (schemeBtn.innerText.trim() === schemeName.trim()){
                                 schemeBtn.classList.add('selected');
@@ -317,16 +316,16 @@
                 button.type="button";
                 button.innerText=scheme;
                 //#ff6b00 highlight seleceted
-                if (schemesArray.includes(scheme)){
+                if (selection.schemes.includes(scheme)){
                     button.classList.add('selected');
                 }
                 button.onclick=function(){
-                    let index=schemesArray.indexOf(scheme);
+                    let index=selection.schemes.indexOf(scheme);
                     if (index===-1){
-                        schemesArray.push(scheme);
+                        selection.schemes.push(scheme);
                         button.classList.add('selected');
                     } else{
-                        schemesArray.splice(index,1);
+                        selection.schemes.splice(index,1);
                         button.classList.remove('selected');
                     }
                     loadPlaybook();
@@ -340,8 +339,8 @@
                     let sIndex=availableSchemes.indexOf(scheme);
                     if (sIndex!==-1) availableSchemes.splice(sIndex,1);
                     //remove from currently active selction
-                    let selIndex=schemesArray.indexOf(scheme);
-                    if (selIndex!==-1) schemesArray.splice(selIndex,1);
+                    let selIndex=selection.schemes.indexOf(scheme);
+                    if (selIndex!==-1) selection.schemes.splice(selIndex,1);
                     //update local storage
                     localStorage.setItem("savedSchemes", JSON.stringify(availableSchemes));
                     loadSchemes();
@@ -367,13 +366,13 @@
                 //Set What Happens when You Click Play
                 button.onclick = function(){
                     console.log(tag);
-                    let index=tagsArray.indexOf(tag);
+                    let index=selection.tags.indexOf(tag);
                     if(index===-1){
-                        tagsArray.push(tag);
+                        selection.tags.push(tag);
                         //highlight button clicked
                         button.classList.add('selected');
                     } else {
-                        tagsArray.splice(index,1);
+                        selection.tags.splice(index,1);
                         button.classList.remove('selected');
                     };
                 };
@@ -387,8 +386,8 @@
                     let tIndex=availableTags.indexOf(tag);
                     if (tIndex!==-1) availableTags.splice(tIndex,1);
                     //remove from currently active selction
-                    let selIndex=tagsArray.indexOf(tag);
-                    if (selIndex!==-1) tagsArray.splice(selIndex,1);
+                    let selIndex=selection.tags.indexOf(tag);
+                    if (selIndex!==-1) selection.tags.splice(selIndex,1);
                     //update local storage
                     localStorage.setItem("savedTags", JSON.stringify(availableTags));
                     loadTags();
@@ -419,13 +418,13 @@ function loadFormations(){
                 //Set What Happens when You Click Play
                 button.onclick = function(){
                     console.log(formation);
-                    let index=formationsArray.indexOf(formation);
+                    let index=selection.formations.indexOf(formation);
                     if(index===-1){
-                        formationsArray.push(formation);
+                        selection.formations.push(formation);
                         //highlight button clicked
                         button.classList.add('selected');
                     } else {
-                        formationsArray.splice(index,1);
+                        selection.formations.splice(index,1);
                         button.classList.remove('selected');
                     };
                 };
@@ -439,8 +438,8 @@ function loadFormations(){
                     let fIndex=availableFormations.indexOf(formation);
                     if (fIndex!==-1) availableFormations.splice(fIndex,1);
                     //remove from currently active selction
-                    let selsIndex=formationsArray.indexOf(formation);
-                    if (selsIndex!==-1) formationsArray.splice(selsIndex,1);
+                    let selsIndex=selection.formations.indexOf(formation);
+                    if (selsIndex!==-1) selection.formations.splice(selsIndex,1);
                     //update local storage
                     localStorage.setItem("savedFormations", JSON.stringify(availableFormations));
                     loadFormations();
@@ -458,7 +457,7 @@ function loadFormations(){
        
 // kisten for updates from fireBase
         window.onPlaysUpdated = function(cloudPlays){
-            gameLog = cloudPlays;
+            setGameLog(cloudPlays);
             updateDashboard();
         };
         function updateDashboard(){
@@ -688,11 +687,12 @@ function loadFormations(){
         //Reset Game log to clear all entries
         document.getElementById("resetGameLog").addEventListener("click",function(){
             if (confirm("Are you sure you want to reset the game log? This cannot be undone.")){
-                gameLog = [];
+                setGameLog([]);
                 localStorage.removeItem("savedGame");
                 updateDashboard();
             }
         });
+        initLogger({loadTags, loadSchemes, updateDashboard});
     if ('serviceWorker' in navigator){
         navigator.serviceWorker.register('sw.js')
             .then(()=> console.log('Service Worker registered successfully'))
